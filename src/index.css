@@ -1,0 +1,16 @@
+@import 'tailwindcss';
+
+/* your custom overrides */
+* {
+  font-family: 'Mulish', sans-serif !important;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #c2c9cc;
+  border-radius: 10px;
+}
