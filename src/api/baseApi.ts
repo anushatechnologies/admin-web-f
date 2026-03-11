@@ -1,7 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { logoutUser } from '@features/auth/authSlice';
 
-
 // -------------------- BASE QUERY WRAPPER (PROTECTED ENDPOINTS) --------------------
 const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
   const rawBaseQuery = fetchBaseQuery({
@@ -20,20 +19,19 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
 
   // ✅ Handle 401/403 - Auto logout
   if (result?.error?.status === 403 || result?.error?.status === 401) {
-    console.log("🚨 401/403 detected — Auto logging out");
-    
+    console.log('🚨 401/403 detected — Auto logging out');
+
     // Clear everything
     localStorage.removeItem('token');
     localStorage.removeItem('sessionid');
     api.dispatch(logoutUser());
-    
+
     // Redirect to login
     window.location.href = '/login';
   }
 
   return result;
 };
-
 
 // -------------------- PUBLIC API (No Auth Required) --------------------
 export const baseApi = createApi({
@@ -48,7 +46,6 @@ export const baseApi = createApi({
   tagTypes: ['User'],
   endpoints: () => ({}),
 });
-
 
 // -------------------- PROTECTED API (With Auth Headers) --------------------
 export const baseApiWithAuth = createApi({

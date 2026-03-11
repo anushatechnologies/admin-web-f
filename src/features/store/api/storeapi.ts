@@ -1,4 +1,6 @@
-const API_BASE_URL = 'http://localhost:9000/api/stores1';
+// const API_BASE_URL = 'http://localhost:9000/api/stores1';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = `${BASE_URL}/stores1`;
 
 export interface Store {
   id: number;
@@ -57,7 +59,11 @@ export const createStore = async (storeData: StoreRequest, imageFile?: File): Pr
   return res.json();
 };
 
-export const updateStore = async (id: number, storeData: StoreRequest, imageFile?: File): Promise<Store> => {
+export const updateStore = async (
+  id: number,
+  storeData: StoreRequest,
+  imageFile?: File,
+): Promise<Store> => {
   const formData = new FormData();
   formData.append('store', new Blob([JSON.stringify(storeData)], { type: 'application/json' }));
   if (imageFile) formData.append('image', imageFile);

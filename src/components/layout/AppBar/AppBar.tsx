@@ -5,6 +5,7 @@ import { Breadcrumb } from '@components/Breadcrumb';
 import AppLoader from '@components/AppLoader';
 import LoanSummaryAppBarRight from '@components/layout/AppBar/components/LoanSummaryAppBarRight';
 import { useSelector } from 'react-redux';
+import ThemeSwitcher from '@components/ThemeSwitcher';
 
 const TopNav: React.FC = () => {
   const pageName = useSelector((state: any) => state.app.pageName);
@@ -21,7 +22,8 @@ const TopNav: React.FC = () => {
         </Box>
 
         {/* Right Section */}
-        <Box className={styles.rightSection}>
+        <Box className={`${styles.rightSection} flex items-center gap-4`}>
+          <ThemeSwitcher />
           {pageName == 'allLoans' && <LoanSummaryAppBarRight />}
           {pageName == 'userModule' && <LoanSummaryAppBarRight />}
         </Box>

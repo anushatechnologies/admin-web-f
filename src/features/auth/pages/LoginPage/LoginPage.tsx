@@ -20,7 +20,7 @@ import { useLoginLogic } from '@features/auth/utils/useLoginLogic';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate(); // ✅ FIX 1: Add navigation
-  
+
   const {
     step,
     loginData,
@@ -48,7 +48,9 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <Box className={`min-h-screen flex items-center justify-center bg-gray-50 p-1 ${styles.loginPage}`}>
+    <Box
+      className={`min-h-screen flex items-center justify-center bg-gray-50 p-1 ${styles.loginPage}`}
+    >
       <Fade in timeout={600}>
         <Paper
           elevation={0}
@@ -133,12 +135,12 @@ const LoginPage: React.FC = () => {
                     <Box sx={{ textAlign: 'center', mt: 2 }}>
                       <Typography
                         component="span"
-                        onClick={handleForgotPassword}  // ✅ WORKS INSTANTLY
+                        onClick={handleForgotPassword} // ✅ WORKS INSTANTLY
                         className={styles.forgotLink}
-                        sx={{ 
-                          cursor: 'pointer', 
+                        sx={{
+                          cursor: 'pointer',
                           color: '#1565c0',
-                          '&:hover': { textDecoration: 'underline' }
+                          '&:hover': { textDecoration: 'underline' },
                         }}
                       >
                         {LOGIN_CONTENT.BUTTON_FORGOT_PASSWORD}
@@ -151,10 +153,10 @@ const LoginPage: React.FC = () => {
                         component="span"
                         onClick={handleRegister}
                         className={styles.forgotLink}
-                        sx={{ 
-                          cursor: 'pointer', 
+                        sx={{
+                          cursor: 'pointer',
                           color: '#28a745',
-                          '&:hover': { textDecoration: 'underline' }
+                          '&:hover': { textDecoration: 'underline' },
                         }}
                       >
                         Don't have an account? <strong>Register here</strong>

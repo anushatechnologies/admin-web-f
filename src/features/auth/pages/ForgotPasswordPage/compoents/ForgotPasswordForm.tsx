@@ -14,7 +14,7 @@ const ForgotPasswordForm: React.FC<Props> = ({ onSubmit, onBack, isLoading }) =>
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       showSnackbar({
@@ -23,7 +23,7 @@ const ForgotPasswordForm: React.FC<Props> = ({ onSubmit, onBack, isLoading }) =>
       });
       return;
     }
-    
+
     onSubmit(email);
   };
 

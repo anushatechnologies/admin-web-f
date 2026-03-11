@@ -13,10 +13,10 @@ export const authApi = baseApi.injectEndpoints({
       invalidatesTags: ['User'],
     }),
 
-    // Login  
+    // Login
     login: builder.mutation<any, { email: string; password: string }>({
       query: (body) => ({
-        url: '/auth/login', 
+        url: '/auth/login',
         method: 'POST',
         body,
       }),

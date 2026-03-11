@@ -54,7 +54,7 @@ export default function CategoryForm({ initialData, onSave, onClose }: Props) {
         imageUrl: initialData?.imageUrl,
         videoUrl: initialData?.videoUrl,
       },
-      imageFile || undefined
+      imageFile || undefined,
     );
   };
 
@@ -93,12 +93,7 @@ export default function CategoryForm({ initialData, onSave, onClose }: Props) {
           fullWidth
         />
         <FormControlLabel
-          control={
-            <Checkbox
-              checked={isActive}
-              onChange={(e) => setIsActive(e.target.checked)}
-            />
-          }
+          control={<Checkbox checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />}
           label="Active"
         />
 

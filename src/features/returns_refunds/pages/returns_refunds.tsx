@@ -1,25 +1,29 @@
-import React from "react";
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Divider,
-} from "@mui/material";
+import React from 'react';
+import { Box, Card, CardContent, Typography, Divider } from '@mui/material';
 
 const PoliciesPage = () => {
   return (
-    <Box sx={{ p: 4, background: "#f5f7fb", minHeight: "100vh" }}>
-      <Card sx={{ borderRadius: 3, boxShadow: 3 }}>
-        <CardContent sx={{ p: 4 }}>
+    <Box sx={{ p: { xs: 2, md: 4 }, minHeight: '100vh', backgroundColor: 'var(--bg-color)' }}>
+      <Box
+        sx={{
+          maxWidth: '1000px',
+          margin: '0 auto',
+          padding: { xs: 3, md: 5 },
+          backgroundColor: 'var(--card-bg)',
+          color: 'var(--text-color)',
+          borderRadius: 3,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+        }}
+      >
+        {/* TAXES */}
+        <Typography sx={{ fontSize: '24px', fontWeight: 700, mb: 3 }}>
+          Taxes on Your Order
+        </Typography>
 
-          {/* TAXES */}
-          <Typography variant="h5" fontWeight={700} gutterBottom>
-            Taxes on Your Order
-          </Typography>
-
-          <Typography variant="body2" sx={{ whiteSpace: "pre-line", mb: 3 }}>
-{`In respect of the order placed by you on the Anusha Bazaar Platform, documents like order summary, tax invoices, etc. as mandated per the applicable law and common business practices shall be issued. Your order may have the following components and corresponding documents:
+        <Typography
+          sx={{ fontSize: '15px', lineHeight: 1.8, opacity: 0.8, mb: 4, whiteSpace: 'pre-line' }}
+        >
+          {`In respect of the order placed by you on the Anusha Bazaar Platform, documents like order summary, tax invoices, etc. as mandated per the applicable law and common business practices shall be issued. Your order may have the following components and corresponding documents:
 
 • Sale of goods – Tax invoice cum bill of supply issued by/on behalf of the relevant seller;
 • Supply of services – Tax invoice issued by/on behalf of the relevant service provider.
@@ -27,17 +31,19 @@ const PoliciesPage = () => {
 • The above documents can be seen on the order summary page once the goods have been delivered to you.
 
 You acknowledge and agree that entitlement to any GST benefits shall be subject to GST terms and submission of valid GST number. Not all products/services are eligible for GST invoice.`}
-          </Typography>
+        </Typography>
 
-          <Divider sx={{ my: 4 }} />
+        <Divider sx={{ my: 4, borderColor: 'var(--border-soft)' }} />
 
-          {/* ORDER CANCELLATION */}
-          <Typography variant="h5" fontWeight={700} gutterBottom>
-            Order Cancellation
-          </Typography>
+        {/* ORDER CANCELLATION */}
+        <Typography sx={{ fontSize: '24px', fontWeight: 700, mb: 3 }}>
+          Order Cancellation
+        </Typography>
 
-          <Typography variant="body2" sx={{ whiteSpace: "pre-line", mb: 3 }}>
-{`You acknowledge that cancellation or attempted cancellation may amount to breach of Terms and shall be permitted subject to acceptance by Anusha Bazaar.
+        <Typography
+          sx={{ fontSize: '15px', lineHeight: 1.8, opacity: 0.8, mb: 4, whiteSpace: 'pre-line' }}
+        >
+          {`You acknowledge that cancellation or attempted cancellation may amount to breach of Terms and shall be permitted subject to acceptance by Anusha Bazaar.
 
 Orders may be cancelled by Anusha Bazaar if:
 (a) fraudulent transaction suspected
@@ -50,17 +56,17 @@ Refunds for such cancellations will be initiated within approximately 72 hours.
 Anusha Bazaar reserves the right to cancel orders and initiate refunds in the form of credit/cashback/coupon/promotional codes.
 
 We reserve the right to deny access to fraudulent or non-complying users.`}
-          </Typography>
+        </Typography>
 
-          <Divider sx={{ my: 4 }} />
+        <Divider sx={{ my: 4, borderColor: 'var(--border-soft)' }} />
 
-          {/* RETURNS & REFUNDS */}
-          <Typography variant="h5" fontWeight={700} gutterBottom>
-            Returns & Refunds
-          </Typography>
+        {/* RETURNS & REFUNDS */}
+        <Typography sx={{ fontSize: '24px', fontWeight: 700, mb: 3 }}>Returns & Refunds</Typography>
 
-          <Typography variant="body2" sx={{ whiteSpace: "pre-line", mb: 3 }}>
-{`Products once delivered/services once fulfilled are non-returnable except:
+        <Typography
+          sx={{ fontSize: '15px', lineHeight: 1.8, opacity: 0.8, mb: 4, whiteSpace: 'pre-line' }}
+        >
+          {`Products once delivered/services once fulfilled are non-returnable except:
 
 (a) damaged, defective, expired, or incorrectly delivered
 (b) if the product policy expressly permits return
@@ -79,59 +85,55 @@ Refunds for COD purchases will be issued via promotional codes (valid 30 days).
 Refunds cannot be transferred back to another payment method once initiated.
 
 All refunds shall be made in Indian Rupees only.`}
-          </Typography>
+        </Typography>
 
-          <Divider sx={{ my: 4 }} />
+        <Divider sx={{ my: 4, borderColor: 'var(--border-soft)' }} />
 
-          {/* RETURN POLICY */}
-          <Typography variant="h5" fontWeight={700} gutterBottom>
-            Return Policy
-          </Typography>
+        {/* RETURN POLICY */}
+        <Typography sx={{ fontSize: '24px', fontWeight: 700, mb: 3 }}>Return Policy</Typography>
 
-          <Typography variant="body2" paragraph>
-            We have a 7-day return policy, which means you have 7 days after receiving your item to request a return.
-          </Typography>
+        <Typography sx={{ fontSize: '15px', lineHeight: 1.8, opacity: 0.8, mb: 4 }}>
+          We have a 7-day return policy, which means you have 7 days after receiving your item to
+          request a return.
+        </Typography>
 
-          <Divider sx={{ my: 4 }} />
+        <Divider sx={{ my: 4, borderColor: 'var(--border-soft)' }} />
 
-          {/* REPLACEMENT */}
-          <Typography variant="h5" fontWeight={700} gutterBottom>
-            Replacement / Exchange
-          </Typography>
+        {/* REPLACEMENT */}
+        <Typography sx={{ fontSize: '24px', fontWeight: 700, mb: 3 }}>
+          Replacement / Exchange
+        </Typography>
 
-          <Typography variant="body2" paragraph>
-            After inspecting the returned/damaged items we shall provide replacement / exchange within 7–10 business days.
-          </Typography>
+        <Typography sx={{ fontSize: '15px', lineHeight: 1.8, opacity: 0.8, mb: 4 }}>
+          After inspecting the returned/damaged items we shall provide replacement / exchange within
+          7–10 business days.
+        </Typography>
 
-          <Divider sx={{ my: 4 }} />
+        <Divider sx={{ my: 4, borderColor: 'var(--border-soft)' }} />
 
-          {/* REFUND PROCESS */}
-          <Typography variant="h5" fontWeight={700} gutterBottom>
-            Refund Process
-          </Typography>
+        {/* REFUND PROCESS */}
+        <Typography sx={{ fontSize: '24px', fontWeight: 700, mb: 3 }}>Refund Process</Typography>
 
-          <Typography variant="body2" sx={{ whiteSpace: "pre-line", mb: 3 }}>
-{`We will notify you once we’ve received and inspected your return.
+        <Typography
+          sx={{ fontSize: '15px', lineHeight: 1.8, opacity: 0.8, mb: 4, whiteSpace: 'pre-line' }}
+        >
+          {`We will notify you once we’ve received and inspected your return.
 
 If approved, you’ll be automatically refunded and credited on your original payment method within 7 business days.
 
 If more than 15 business days have passed since approval, contact:
 anushabazaar4@gmail.com`}
-          </Typography>
+        </Typography>
 
-          <Divider sx={{ my: 4 }} />
+        <Divider sx={{ my: 4, borderColor: 'var(--border-soft)' }} />
 
-          {/* SHIPPING */}
-          <Typography variant="h5" fontWeight={700} gutterBottom>
-            Shipping Policy
-          </Typography>
+        {/* SHIPPING */}
+        <Typography sx={{ fontSize: '24px', fontWeight: 700, mb: 3 }}>Shipping Policy</Typography>
 
-          <Typography variant="body2">
-            Products will get shipped and delivered in 6 to 8 days.
-          </Typography>
-
-        </CardContent>
-      </Card>
+        <Typography sx={{ fontSize: '15px', lineHeight: 1.8, opacity: 0.8, mb: 4 }}>
+          Products will get shipped and delivered in 6 to 8 days.
+        </Typography>
+      </Box>
     </Box>
   );
 };

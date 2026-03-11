@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   Box,
   Card,
@@ -8,7 +8,7 @@ import {
   Divider,
   Stack,
   TextField,
-} from "@mui/material";
+} from '@mui/material';
 
 const TermsAndPayments = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -47,137 +47,156 @@ providing electronic payment processing.`,
   };
 
   return (
-    <Box sx={{ p: 4, background: "#f5f7fb", minHeight: "100vh" }}>
-      <Card sx={{ borderRadius: 3, boxShadow: 3 }}>
-        <CardContent sx={{ p: 4 }}>
+    <Box sx={{ p: { xs: 2, md: 4 }, minHeight: '100vh', backgroundColor: 'var(--bg-color)' }}>
+      <Box
+        sx={{
+          maxWidth: '1000px',
+          margin: '0 auto',
+          padding: { xs: 3, md: 5 },
+          backgroundColor: 'var(--card-bg)',
+          color: 'var(--text-color)',
+          borderRadius: 3,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+        }}
+      >
+        <Typography sx={{ fontSize: '24px', fontWeight: 700, mb: 3 }}>
+          User Account, Password and Security
+        </Typography>
 
-          <Typography variant="h5" fontWeight={700} gutterBottom>
-            User Account, Password and Security
+        <Divider sx={{ mb: 4, borderColor: 'var(--border-soft)' }} />
+
+        {/* Section 1 */}
+        <Typography sx={{ fontSize: '18px', fontWeight: 600, mb: 2 }}>
+          1.1 Account Registration
+        </Typography>
+
+        {isEditing ? (
+          <TextField
+            fullWidth
+            multiline
+            rows={5}
+            value={content.section1}
+            onChange={(e) => handleChange('section1', e.target.value)}
+            sx={{ mb: 4, backgroundColor: 'var(--bg-color)' }}
+          />
+        ) : (
+          <Typography
+            sx={{ fontSize: '15px', lineHeight: 1.8, opacity: 0.8, mb: 4, whiteSpace: 'pre-line' }}
+          >
+            {content.section1}
           </Typography>
+        )}
 
-          <Divider sx={{ mb: 3 }} />
+        {/* Section 2 */}
+        <Typography sx={{ fontSize: '18px', fontWeight: 600, mb: 2 }}>
+          1.2 Accuracy of Information
+        </Typography>
 
-          {/* Section 1 */}
-          <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-            1.1 Account Registration
+        {isEditing ? (
+          <TextField
+            fullWidth
+            multiline
+            rows={5}
+            value={content.section2}
+            onChange={(e) => handleChange('section2', e.target.value)}
+            sx={{ mb: 4, backgroundColor: 'var(--bg-color)' }}
+          />
+        ) : (
+          <Typography
+            sx={{ fontSize: '15px', lineHeight: 1.8, opacity: 0.8, mb: 4, whiteSpace: 'pre-line' }}
+          >
+            {content.section2}
           </Typography>
+        )}
 
-          {isEditing ? (
+        {/* Section 3 */}
+        <Typography sx={{ fontSize: '18px', fontWeight: 600, mb: 2 }}>
+          1.3 Account Confidentiality
+        </Typography>
+
+        {isEditing ? (
+          <TextField
+            fullWidth
+            multiline
+            rows={4}
+            value={content.section3}
+            onChange={(e) => handleChange('section3', e.target.value)}
+            sx={{ mb: 4, backgroundColor: 'var(--bg-color)' }}
+          />
+        ) : (
+          <Typography
+            sx={{ fontSize: '15px', lineHeight: 1.8, opacity: 0.8, mb: 4, whiteSpace: 'pre-line' }}
+          >
+            {content.section3}
+          </Typography>
+        )}
+
+        <Divider sx={{ my: 4, borderColor: 'var(--border-soft)' }} />
+
+        {/* Payments Section */}
+        <Typography sx={{ fontSize: '24px', fontWeight: 700, mb: 3 }}>
+          Payments Facility and Related Information
+        </Typography>
+
+        {['payments1', 'payments2', 'payments3', 'payments4'].map((key) =>
+          isEditing ? (
             <TextField
-              fullWidth
-              multiline
-              rows={5}
-              value={content.section1}
-              onChange={(e) => handleChange("section1", e.target.value)}
-              sx={{ mb: 3 }}
-            />
-          ) : (
-            <Typography variant="body2" color="text.secondary" paragraph>
-              {content.section1}
-            </Typography>
-          )}
-
-          {/* Section 2 */}
-          <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-            1.2 Accuracy of Information
-          </Typography>
-
-          {isEditing ? (
-            <TextField
-              fullWidth
-              multiline
-              rows={5}
-              value={content.section2}
-              onChange={(e) => handleChange("section2", e.target.value)}
-              sx={{ mb: 3 }}
-            />
-          ) : (
-            <Typography variant="body2" color="text.secondary" paragraph>
-              {content.section2}
-            </Typography>
-          )}
-
-          {/* Section 3 */}
-          <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-            1.3 Account Confidentiality
-          </Typography>
-
-          {isEditing ? (
-            <TextField
+              key={key}
               fullWidth
               multiline
               rows={4}
-              value={content.section3}
-              onChange={(e) => handleChange("section3", e.target.value)}
-              sx={{ mb: 3 }}
+              value={(content as any)[key]}
+              onChange={(e) => handleChange(key, e.target.value)}
+              sx={{ mb: 3, backgroundColor: 'var(--bg-color)' }}
             />
           ) : (
-            <Typography variant="body2" color="text.secondary" paragraph>
-              {content.section3}
+            <Typography
+              key={key}
+              sx={{
+                fontSize: '15px',
+                lineHeight: 1.8,
+                opacity: 0.8,
+                mb: 3,
+                whiteSpace: 'pre-line',
+              }}
+            >
+              {(content as any)[key]}
             </Typography>
-          )}
+          ),
+        )}
 
-          {/* Payments Section */}
-          <Typography
-            variant="h5"
-            fontWeight={700}
-            gutterBottom
-            sx={{ mt: 4 }}
-          >
-            Payments Facility and Related Information
-          </Typography>
+        <Divider sx={{ my: 4, borderColor: 'var(--border-soft)' }} />
 
-          <Divider sx={{ mb: 3 }} />
-
-          {["payments1", "payments2", "payments3", "payments4"].map((key) =>
-            isEditing ? (
-              <TextField
-                key={key}
-                fullWidth
-                multiline
-                rows={4}
-                value={(content as any)[key]}
-                onChange={(e) => handleChange(key, e.target.value)}
-                sx={{ mb: 2 }}
-              />
-            ) : (
-              <Typography
-                key={key}
-                variant="body2"
-                color="text.secondary"
-                paragraph
-              >
-                {(content as any)[key]}
-              </Typography>
-            )
-          )}
-
-          <Divider sx={{ mt: 4, mb: 3 }} />
-
-          {/* Buttons */}
-          <Stack direction="row" spacing={2} justifyContent="flex-end">
-            {isEditing ? (
-              <>
-                <Button variant="outlined" onClick={() => setIsEditing(false)}>
-                  Cancel
-                </Button>
-                <Button variant="contained" onClick={() => setIsEditing(false)}>
-                  Save
-                </Button>
-              </>
-            ) : (
+        {/* Buttons */}
+        <Stack direction="row" spacing={2} justifyContent="flex-end">
+          {isEditing ? (
+            <>
               <Button
                 variant="outlined"
-                color="primary"
-                onClick={() => setIsEditing(true)}
+                onClick={() => setIsEditing(false)}
+                sx={{ borderColor: 'var(--border-soft)', color: 'var(--text-color)' }}
               >
-                Edit
+                Cancel
               </Button>
-            )}
-          </Stack>
-
-        </CardContent>
-      </Card>
+              <Button
+                variant="contained"
+                onClick={() => setIsEditing(false)}
+                sx={{ backgroundColor: 'var(--highlight-color)' }}
+              >
+                Save
+              </Button>
+            </>
+          ) : (
+            <Button
+              variant="contained"
+              onClick={() => setIsEditing(true)}
+              sx={{ backgroundColor: 'var(--highlight-color)' }}
+            >
+              Edit Policies
+            </Button>
+          )}
+        </Stack>
+      </Box>
     </Box>
   );
 };

@@ -1,8 +1,16 @@
 @import 'tailwindcss';
 
-/* your custom overrides */
+/* --- Reset & Global overrides --- */
 * {
-  font-family: 'Mulish', sans-serif !important;
+  font-family: 'Inter', sans-serif !important;
+}
+
+body {
+  min-height: 100vh;
+  /* CSS transition for smooth globally applied theming */
+  transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+  background-color: var(--bg-color, #ffffff);
+  color: var(--text-color, #111111);
 }
 
 ::-webkit-scrollbar {
@@ -14,3 +22,182 @@
   background-color: #c2c9cc;
   border-radius: 10px;
 }
+
+/* --- Theme Variables --- */
+:root {
+  /* Default to light mode fallback internally if neither is set directly */
+  --bg-color: #ffffff;
+  --text-color: #000000;
+  --card-bg: #f5f5f5;
+  --card-border: transparent;
+  --primary-btn: #3b82f6;
+  --primary-btn-hover: #2563eb;
+  --primary-btn-text: #ffffff;
+  --btn-shadow: rgba(59, 130, 246, 0.4) 0px 4px 14px 0px;
+  --nav-bg: rgba(255, 255, 255, 0.8);
+  --sidenav-bg: #0ea5e9;
+  --sidenav-text: #ffffff;
+  --border-soft: rgba(0, 0, 0, 0.1);
+  --hover-effect: translateY(-5px);
+  --highlight-color: #3b82f6;
+  --backdrop-blur: blur(8px);
+}
+
+/* --- Light Theme --- */
+.light-theme {
+  --bg-color: #ffffff;
+  --text-color: #000000;
+  --card-bg: #f5f5f5;
+  --card-border: transparent;
+  --primary-btn: #3b82f6;
+  --primary-btn-hover: #2563eb;
+  --primary-btn-text: #ffffff;
+  --btn-shadow: rgba(59, 130, 246, 0.3) 0px 4px 14px 0px;
+  --nav-bg: rgba(255, 255, 255, 0.9);
+  --sidenav-bg: #0ea5e9;
+  --sidenav-text: #ffffff;
+  --border-soft: rgba(0, 0, 0, 0.1);
+  --highlight-color: #2563eb;
+  --backdrop-blur: blur(10px);
+}
+
+/* --- Dark Theme --- */
+.dark-theme {
+  --bg-color: #000000;
+  --text-color: #ffffff;
+  --card-bg: #1e293b;
+  --card-border: transparent;
+  --primary-btn: #8b5cf6;
+  --primary-btn-hover: #7c3aed;
+  --primary-btn-text: #ffffff;
+  --btn-shadow: rgba(139, 92, 246, 0.6) 0px 0px 15px 2px;
+  --nav-bg: rgba(15, 23, 42, 0.85);
+  --sidenav-bg: #0f172a;
+  --sidenav-text: #ffffff;
+  --border-soft: rgba(255, 255, 255, 0.1);
+  --highlight-color: #a78bfa;
+  --backdrop-blur: blur(12px);
+}
+.dark-theme img[data-dark] {
+  filter: brightness(0.85);
+}
+
+/* --- Glass (Transparent) Theme --- */
+.glass-theme {
+  --bg-color: transparent; 
+  --text-color: #ffffff;
+  --card-bg: rgba(255, 255, 255, 0.05);
+  --card-border: rgba(255, 255, 255, 0.2);
+  --primary-btn: rgba(255, 255, 255, 0.15);
+  --primary-btn-hover: rgba(255, 255, 255, 0.25);
+  --primary-btn-text: #ffffff;
+  --btn-shadow: rgba(255, 255, 255, 0.2) 0px 0px 15px 2px;
+  --nav-bg: rgba(255, 255, 255, 0.05);
+  --border-soft: rgba(255, 255, 255, 0.15);
+  --highlight-color: #e2e8f0;
+  --backdrop-blur: blur(15px);
+}
+
+/* Background visual effect exclusively for Glass Theme to show off transparency */
+.glass-background-effect {
+  display: none; /* hidden by default */
+}
+.glass-theme .glass-background-effect {
+  display: block;
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  width: 200vw;
+  height: 200vh;
+  background: linear-gradient(120deg, #ff007f, #7928ca, #4338ca);
+  z-index: -999;
+  animation: flowBackground 15s ease infinite alternate;
+}
+
+@keyframes flowBackground {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(10%, 10%); }
+}
+
+/* --- Dark Mode Tailwind Overrides --- */
+/* Forces pure black/white appearance on components with hardcoded light theme tailwind classes */
+.dark-theme .bg-white,
+.dark-theme [class*='bg-gray-'],
+.dark-theme [class*='from-gray-'],
+.dark-theme [class*='to-gray-'] {
+  background-color: var(--bg-color) !important;
+  background-image: none !important;
+}
+
+.dark-theme .text-gray-900,
+.dark-theme .text-gray-800,
+.dark-theme .text-gray-700,
+.dark-theme .text-gray-600,
+.dark-theme .text-black,
+.dark-theme [class*='text-gray-'] {
+  color: var(--text-color) !important;
+}
+
+.dark-theme .border-gray-100,
+.dark-theme .border-gray-200,
+.dark-theme .border-gray-300,
+.dark-theme [class*='border-gray-'] {
+  border-color: #333333 !important;
+}
+
+/* Subtle distinction for hover states over black in dark mode */
+.dark-theme .hover\:bg-gray-50:hover,
+.dark-theme .hover\:bg-gray-100:hover,
+.dark-theme .hover\:bg-gray-200:hover {
+  background-color: #1a1a1a !important;
+}
+
+/* --- Dark Mode MUI Overrides --- */
+.dark-theme .MuiPaper-root,
+.dark-theme .MuiCard-root {
+  background-color: var(--card-bg) !important;
+  color: var(--text-color) !important;
+  background-image: none !important;
+}
+
+.dark-theme .MuiTypography-root {
+  color: var(--text-color) !important;
+}
+
+.dark-theme .MuiTypography-colorTextSecondary {
+  color: #aaaaaa !important;
+}
+
+.dark-theme .MuiTableCell-root,
+.dark-theme th, .dark-theme td {
+  color: var(--text-color) !important;
+  border-bottom-color: #333333 !important;
+}
+
+.dark-theme .MuiDivider-root {
+  border-color: #333333 !important;
+}
+
+.dark-theme .MuiTab-root {
+  color: #aaaaaa !important;
+}
+
+.dark-theme .Mui-selected {
+  color: var(--text-color) !important;
+}
+
+.dark-theme .MuiOutlinedInput-root,
+.dark-theme .MuiInputBase-root {
+  color: var(--text-color) !important;
+  background-color: var(--card-bg) !important;
+}
+
+.dark-theme .MuiOutlinedInput-notchedOutline {
+  border-color: #333333 !important;
+}
+
+.dark-theme .MuiInputLabel-root {
+  color: #aaaaaa !important;
+}
+
+

@@ -95,17 +95,17 @@ export default function SubCategoryList() {
     }
   };
 
-  const filteredSubCategories = subCategories.filter(sc =>
+  const filteredSubCategories = subCategories.filter((sc) =>
     searchKeyword
       ? sc.name.toLowerCase().includes(searchKeyword.toLowerCase()) ||
-      (sc.description && sc.description.toLowerCase().includes(searchKeyword.toLowerCase()))
-      : true
+        (sc.description && sc.description.toLowerCase().includes(searchKeyword.toLowerCase()))
+      : true,
   );
 
   const totalPages = Math.ceil(filteredSubCategories.length / ITEMS_PER_PAGE);
   const currentData = filteredSubCategories.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
+    currentPage * ITEMS_PER_PAGE,
   );
 
   const handleSave = async (formData: SubCategoryRequest) => {
@@ -250,11 +250,7 @@ export default function SubCategoryList() {
                       >
                         <Edit />
                       </IconButton>
-                      <IconButton
-                        color="error"
-                        onClick={() => handleDelete(sc.id)}
-                        size="small"
-                      >
+                      <IconButton color="error" onClick={() => handleDelete(sc.id)} size="small">
                         <Delete />
                       </IconButton>
                     </TableCell>

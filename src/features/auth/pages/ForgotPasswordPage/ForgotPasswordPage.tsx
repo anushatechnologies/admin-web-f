@@ -31,7 +31,6 @@ const ForgotPasswordPage: React.FC = () => {
         message: 'OTP sent to your email!',
         severity: 'success',
       });
-
     } catch (error: any) {
       showSnackbar({
         message: error?.data?.message || 'Failed to send OTP',
@@ -55,7 +54,6 @@ const ForgotPasswordPage: React.FC = () => {
       });
 
       navigate('/login');
-
     } catch (error: any) {
       showSnackbar({
         message: error?.data?.message || 'Password reset failed',
@@ -65,7 +63,9 @@ const ForgotPasswordPage: React.FC = () => {
   };
 
   return (
-    <Box className={`min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4 ${styles.forgotPage}`}>
+    <Box
+      className={`min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4 ${styles.forgotPage}`}
+    >
       <Fade in timeout={600}>
         <Paper elevation={8} className={styles.forgotPaper}>
           <div className={styles.content}>

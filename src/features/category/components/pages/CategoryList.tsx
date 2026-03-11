@@ -33,13 +33,7 @@ import {
   Chip,
   Avatar,
 } from '@mui/material';
-import {
-  Add,
-  Edit,
-  Delete,
-  Search,
-  ImageNotSupported,
-} from '@mui/icons-material';
+import { Add, Edit, Delete, Search, ImageNotSupported } from '@mui/icons-material';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -54,9 +48,7 @@ export default function CategoryList() {
   const loadCategories = async (keyword = '') => {
     setLoading(true);
     try {
-      const data = keyword.trim()
-        ? await searchCategories(keyword)
-        : await fetchCategories();
+      const data = keyword.trim() ? await searchCategories(keyword) : await fetchCategories();
       setCategories(data);
       setCurrentPage(1);
     } catch (error: any) {
@@ -70,7 +62,7 @@ export default function CategoryList() {
     debounce((keyword: string) => {
       loadCategories(keyword);
     }, 500),
-    []
+    [],
   );
 
   useEffect(() => {
@@ -99,16 +91,16 @@ export default function CategoryList() {
     }
   };
 
-const handleDelete = async (id: number) => {
-  if (!confirm('Are you sure you want to permanently delete this category?')) return;
-  try {
-    await hardDeleteCategory(id);               // <-- use hard delete
-    toast.success('Category deleted permanently');
-    await loadCategories(searchKeyword);
-  } catch (error: any) {
-    toast.error(error.message);
-  }
-};
+  const handleDelete = async (id: number) => {
+    if (!confirm('Are you sure you want to permanently delete this category?')) return;
+    try {
+      await hardDeleteCategory(id); // <-- use hard delete
+      toast.success('Category deleted permanently');
+      await loadCategories(searchKeyword);
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
 
   const handleEdit = (cat: Category) => {
     setEditingCategory(cat);
@@ -118,7 +110,7 @@ const handleDelete = async (id: number) => {
   const totalPages = Math.ceil(categories.length / ITEMS_PER_PAGE);
   const currentData = categories.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
+    currentPage * ITEMS_PER_PAGE,
   );
 
   const handleChangePage = (event: React.ChangeEvent<unknown>, value: number) => {
@@ -216,18 +208,10 @@ const handleDelete = async (id: number) => {
                       />
                     </TableCell>
                     <TableCell align="right">
-                      <IconButton
-                        color="primary"
-                        onClick={() => handleEdit(cat)}
-                        size="small"
-                      >
+                      <IconButton color="primary" onClick={() => handleEdit(cat)} size="small">
                         <Edit />
                       </IconButton>
-                      <IconButton
-                        color="error"
-                        onClick={() => handleDelete(cat.id)}
-                        size="small"
-                      >
+                      <IconButton color="error" onClick={() => handleDelete(cat.id)} size="small">
                         <Delete />
                       </IconButton>
                     </TableCell>
@@ -259,9 +243,7 @@ const handleDelete = async (id: number) => {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>
-          {editingCategory ? 'Edit Category' : 'Add Category'}
-        </DialogTitle>
+        <DialogTitle>{editingCategory ? 'Edit Category' : 'Add Category'}</DialogTitle>
         <DialogContent>
           <CategoryForm
             initialData={editingCategory || undefined}

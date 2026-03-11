@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { fetchStores, Store } from '../../store_type/api/storeapi';
 import { fetchCategories, Category } from '../../category/components/api/categoryApi';
-import { fetchSubCategoriesByCategory, SubCategory } from '../../category/components/api/subCategoryApi';
+import {
+  fetchSubCategoriesByCategory,
+  SubCategory,
+} from '../../category/components/api/subCategoryApi';
 import { ProductRequest } from '../api/productApi';
 import toast from 'react-hot-toast';
 import {
@@ -207,9 +210,7 @@ export default function ProductForm({ initialData, onSave, onClose }: Props) {
             onChange={(e) => setSubCategoryId(Number(e.target.value))}
             label="SubCategory *"
           >
-            <MenuItem value="">
-              {loadingSubs ? 'Loading...' : 'Select a subcategory'}
-            </MenuItem>
+            <MenuItem value="">{loadingSubs ? 'Loading...' : 'Select a subcategory'}</MenuItem>
             {subCategories.map((sc) => (
               <MenuItem key={sc.id} value={sc.id}>
                 {sc.name}
@@ -221,19 +222,13 @@ export default function ProductForm({ initialData, onSave, onClose }: Props) {
         <Stack direction="row" spacing={4}>
           <FormControlLabel
             control={
-              <Checkbox
-                checked={isActive}
-                onChange={(e) => setIsActive(e.target.checked)}
-              />
+              <Checkbox checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
             }
             label="Active"
           />
           <FormControlLabel
             control={
-              <Checkbox
-                checked={isTrending}
-                onChange={(e) => setIsTrending(e.target.checked)}
-              />
+              <Checkbox checked={isTrending} onChange={(e) => setIsTrending(e.target.checked)} />
             }
             label="Trending"
           />

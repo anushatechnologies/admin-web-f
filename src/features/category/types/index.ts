@@ -18,7 +18,7 @@ export interface SubCategory {
   isActive: boolean;
   displayOrder: number;
   discount: number;
-  category: Category;          // Backend returns full category object
+  category: Category; // Backend returns full category object
   products?: Product[];
   createdAt?: string;
   updatedAt?: string;

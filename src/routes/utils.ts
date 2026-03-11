@@ -1,8 +1,3 @@
-import ViewCompactIcon from '@mui/icons-material/ViewCompact';
-import RouteIcon from '@mui/icons-material/Route';
-import { Payments } from '@mui/icons-material';
-import PaymentIcon from '@mui/icons-material/Payment';
-import ListAltIcon from '@mui/icons-material/ListAlt';
 import {
   Dashboard,
   LocalShipping,
@@ -21,13 +16,22 @@ import LocalAtmIcon from '@mui/icons-material/LocalAtm';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 
-export const RouteLinks = [
+export interface RouteLinkItem {
+  name: string;
+  path: string;
+  Icon: any;
+}
+
+export interface RouteLinkGroup {
+  section: string;
+  links: RouteLinkItem[];
+}
+
+export const RouteLinks: RouteLinkGroup[] = [
   // ---------------- DASHBOARD ----------------
   {
     section: 'Dashboard',
-    links: [
-      { name: 'Dashboard', path: '/', Icon: Dashboard },
-    ],
+    links: [{ name: 'Dashboard', path: '/', Icon: Dashboard }],
   },
 
   // ---------------- GOODS (Catalog) ----------------
@@ -35,7 +39,7 @@ export const RouteLinks = [
     section: 'Goods',
     links: [
       { name: 'Category', path: '/categories', Icon: Category },
-        { name: 'SubCategory', path: '/subcategories', Icon: Category },
+      { name: 'SubCategory', path: '/subcategories', Icon: Category },
       { name: 'Product', path: '/products', Icon: Inventory2 },
       { name: '% Discount', path: '/discount', Icon: Payment },
     ],

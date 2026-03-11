@@ -1,4 +1,6 @@
-const API_BASE_URL = 'http://localhost:9000/api/stores';
+// const API_BASE_URL = 'http://localhost:9000/api/stores';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = `${BASE_URL}/stores`;
 
 export interface Store {
   id: number;
@@ -7,7 +9,7 @@ export interface Store {
   displayOrder: number;
   active: boolean;
   imageUrl: string;
-  store1Id: number;           // ← NEW field – must be returned by backend
+  store1Id: number; // ← NEW field – must be returned by backend
 }
 
 export interface StoreRequest {
@@ -15,14 +17,14 @@ export interface StoreRequest {
   label: string;
   displayOrder: number;
   active: boolean;
-  store1Id: number;           // ← NEW field – sent to backend
+  store1Id: number; // ← NEW field – sent to backend
 }
 
 export const fetchStores = async (
   name?: string,
   page = 0,
   size = 10,
-  sort?: string
+  sort?: string,
 ): Promise<{ content: Store[]; totalPages: number; totalElements: number }> => {
   const params = new URLSearchParams();
   if (name) params.append('name', name);
@@ -55,7 +57,11 @@ export const createStore = async (storeData: StoreRequest, imageFile: File): Pro
   return res.json();
 };
 
-export const updateStore = async (id: number, storeData: StoreRequest, imageFile?: File): Promise<Store> => {
+export const updateStore = async (
+  id: number,
+  storeData: StoreRequest,
+  imageFile?: File,
+): Promise<Store> => {
   const formData = new FormData();
   formData.append('store', new Blob([JSON.stringify(storeData)], { type: 'application/json' }));
   if (imageFile) formData.append('image', imageFile);

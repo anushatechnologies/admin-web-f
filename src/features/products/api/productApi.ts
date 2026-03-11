@@ -1,6 +1,8 @@
-const API_BASE_URL = 'http://localhost:9000/api/products';
+// const API_BASE_URL = 'http://localhost:9000/api/products';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = `${BASE_URL}/products`;
 
-import { Product } from '../../category/types/index'
+import { Product } from '../../category/types/index';
 
 export interface ProductRequest {
   name: string;
@@ -36,10 +38,7 @@ export const fetchProductById = async (id: number): Promise<Product> => {
 };
 
 // CREATE with image
-export const createProduct = async (
-  data: ProductRequest,
-  imageFile?: File
-): Promise<Product> => {
+export const createProduct = async (data: ProductRequest, imageFile?: File): Promise<Product> => {
   const formData = new FormData();
   formData.append('product', new Blob([JSON.stringify(data)], { type: 'application/json' }));
   if (imageFile) formData.append('image', imageFile);
@@ -56,7 +55,7 @@ export const createProduct = async (
 export const updateProduct = async (
   id: number,
   data: ProductRequest,
-  imageFile?: File
+  imageFile?: File,
 ): Promise<Product> => {
   const formData = new FormData();
   formData.append('product', new Blob([JSON.stringify(data)], { type: 'application/json' }));

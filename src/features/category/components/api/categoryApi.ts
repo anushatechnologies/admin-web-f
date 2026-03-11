@@ -1,4 +1,6 @@
-const API_BASE_URL = 'http://localhost:9000/api/categories';
+// const API_BASE_URL = 'http://localhost:9000/api/categories';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = `${BASE_URL}/categories`;
 
 import { Category } from '../../types/index';
 
@@ -19,11 +21,10 @@ export const fetchCategoryById = async (id: number): Promise<Category> => {
   return res.json();
 };
 
-
 // CREATE category with multipart/form-data
 export const createCategory = async (
   data: CategoryRequest,
-  imageFile?: File
+  imageFile?: File,
 ): Promise<Category> => {
   const formData = new FormData();
   formData.append('category', new Blob([JSON.stringify(data)], { type: 'application/json' }));
@@ -41,7 +42,7 @@ export const createCategory = async (
 export const updateCategory = async (
   id: number,
   data: CategoryRequest,
-  imageFile?: File
+  imageFile?: File,
 ): Promise<Category> => {
   const formData = new FormData();
   formData.append('category', new Blob([JSON.stringify(data)], { type: 'application/json' }));

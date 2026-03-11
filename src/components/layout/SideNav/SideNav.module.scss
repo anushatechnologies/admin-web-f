@@ -23,7 +23,7 @@
 // Main container
 .sideNav {
   min-height: 100vh;
-  background: linear-gradient(180deg, #667eea 0%, #667eea 100%);
+  background: var(--sidenav-bg);
   border-right: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
@@ -69,7 +69,7 @@
 .logoIcon {
   width: 30px;
   height: 30px;
-  background: #fff;
+  background: var(--card-bg);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -86,7 +86,7 @@
 .logoIconCollapsed {
   width: 40px;
   height: 32px;
-  background: #fff;
+  background: var(--card-bg);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -101,9 +101,10 @@
 }
 
 .logoText {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 700;
-  color: white;
+  color: var(--sidenav-text);
+  line-height: 1;
 }
 
 // Toggle button
@@ -113,14 +114,14 @@
   right: -16px !important;
   width: 32px !important;
   height: 32px !important;
-  background: white !important;
+  background: var(--sidenav-text) !important;
+  color: #111111 !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   border: 1px solid rgba(0, 0, 0, 0.1);
   z-index: 900;
   transition: all 0.3s ease;
 
   &:hover {
-    background: white !important;
     transform: scale(1.1) !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
   }
@@ -145,7 +146,7 @@
   gap: 1rem;
   padding: 0.75rem;
   border-radius: 0.5rem;
-  color: white;
+  color: var(--sidenav-text);
   cursor: pointer;
   position: relative;
   overflow: hidden;
@@ -190,7 +191,7 @@
     top: 0;
     bottom: 0;
     width: 4px;
-    background: white;
+    background: var(--sidenav-text);
     border-radius: 0 4px 4px 0;
     transform: scaleY(0);
     transition: transform 0.3s ease;
@@ -228,15 +229,6 @@
   }
 }
 
-.activeDot {
-  margin-left: auto;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: white;
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
 // User profile section
 .userSection {
   padding: 1rem;
@@ -258,6 +250,7 @@
 
   &.collapsed {
     justify-content: center;
+    padding: 0.75rem 0; /* Tighten horizontal padding when collapsed */
   }
 
   &.expanded {
@@ -265,9 +258,9 @@
   }
 
   &:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(0, 0, 0, 0.15); /* Stronger contrast for hover on logo gradient */
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   }
 }
 
@@ -278,45 +271,17 @@
 
 .userName {
   font-size: 0.9rem;
-  font-weight: 600;
-  color: white;
+  font-weight: 700;
+  color: var(--sidenav-text);
+  line-height: 1.2;
 }
 
-.userEmail {
+.userRole {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-// Logout button
-.logoutButton {
-  margin-top: 0.5rem;
-  width: 100%;
-  color: white;
-  padding: 0.75rem 0;
-  border-radius: 0.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  gap: 1rem;
-  transition: all 0.3s ease;
-
-  &.collapsed {
-    justify-content: center;
-  }
-
-  &.expanded {
-    justify-content: flex-start;
-  }
-
-  &:hover {
-    background: rgba(244, 67, 54, 0.3);
-    border: 1px solid rgba(244, 67, 54, 0.5);
-    transform: translateY(-2px);
-  }
-}
-
-.logoutText {
-  font-size: 0.9rem;
   font-weight: 500;
-  animation: slideIn 0.3s ease-out;
+  color: var(--sidenav-text);
+  opacity: 0.8;
+  margin-top: 2px;
+  text-transform: capitalize;
 }
+

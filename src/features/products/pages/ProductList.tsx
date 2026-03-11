@@ -48,9 +48,7 @@ export default function ProductList() {
   const loadProducts = async (keyword = '') => {
     setLoading(true);
     try {
-      const data = keyword.trim()
-        ? await searchProducts(keyword)
-        : await fetchProducts();
+      const data = keyword.trim() ? await searchProducts(keyword) : await fetchProducts();
       setProducts(data);
       setCurrentPage(1);
     } catch (error: any) {
@@ -64,7 +62,7 @@ export default function ProductList() {
     debounce((keyword: string) => {
       loadProducts(keyword);
     }, 500),
-    []
+    [],
   );
 
   useEffect(() => {
@@ -107,7 +105,7 @@ export default function ProductList() {
   const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
   const currentData = products.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
+    currentPage * ITEMS_PER_PAGE,
   );
 
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
@@ -228,11 +226,7 @@ export default function ProductList() {
                       >
                         <Edit />
                       </IconButton>
-                      <IconButton
-                        color="error"
-                        onClick={() => handleDelete(p.id)}
-                        size="small"
-                      >
+                      <IconButton color="error" onClick={() => handleDelete(p.id)} size="small">
                         <Delete />
                       </IconButton>
                     </TableCell>

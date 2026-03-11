@@ -72,7 +72,9 @@
 //   if (!res.ok) throw new Error('Failed to permanently delete subcategory');
 // };
 
-const API_BASE_URL = 'http://localhost:9000/api/subcategories';
+// const API_BASE_URL = 'http://localhost:9000/api/subcategories';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = `${BASE_URL}/subcategories`;
 
 import { SubCategory } from '../types';
 
@@ -93,7 +95,7 @@ const toBackendPayload = (data: SubCategoryRequest) => ({
   isActive: data.isActive,
   displayOrder: data.displayOrder,
   discount: data.discount,
-  categoryId: data.categoryId, 
+  categoryId: data.categoryId,
 });
 
 // GET subcategories by category ID (active only, ordered by displayOrder)
@@ -127,7 +129,10 @@ export const fetchAllSubCategories = async (): Promise<SubCategory[]> => {
   return res.json();
 };
 // UPDATE subcategory
-export const updateSubCategory = async (id: number, data: SubCategoryRequest): Promise<SubCategory> => {
+export const updateSubCategory = async (
+  id: number,
+  data: SubCategoryRequest,
+): Promise<SubCategory> => {
   const payload = toBackendPayload(data);
   const res = await fetch(`${API_BASE_URL}/${id}`, {
     method: 'PUT',

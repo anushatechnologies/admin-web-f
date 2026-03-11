@@ -29,7 +29,7 @@ export default function SubCategoryForm({ initialData, categoryId, onSave, onClo
   const [displayOrder, setDisplayOrder] = useState(initialData?.displayOrder || 0);
   const [discount, setDiscount] = useState(initialData?.discount || 0);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number>(
-    initialData?.category?.id || categoryId || 0
+    initialData?.category?.id || categoryId || 0,
   );
   const [categories, setCategories] = useState<Category[]>([]);
 
@@ -97,12 +97,7 @@ export default function SubCategoryForm({ initialData, categoryId, onSave, onClo
           fullWidth
         />
         <FormControlLabel
-          control={
-            <Checkbox
-              checked={isActive}
-              onChange={(e) => setIsActive(e.target.checked)}
-            />
-          }
+          control={<Checkbox checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />}
           label="Active"
         />
 

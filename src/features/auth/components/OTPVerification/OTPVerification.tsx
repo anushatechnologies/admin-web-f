@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Box, TextField, Button, Typography, Alert, Fade } from '@mui/material';
 import styles from './OTPVerification.module.scss';

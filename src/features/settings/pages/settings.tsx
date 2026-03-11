@@ -1,4 +1,5 @@
-import { useRef, useState } from "react";
+import { useRef, useState } from 'react';
+import toast from 'react-hot-toast';
 
 type Settings = {
   showErrorsAtMobile: boolean;
@@ -13,11 +14,11 @@ type Settings = {
 const DEFAULT_SETTINGS: Settings = {
   showErrorsAtMobile: false,
   imageClassificationRating: 0.74,
-  apiVersionId: "v1",
-  bucketUrl: "uploads/example",
-  clearOrderDataAfter: "2 years",
-  appRefresh: "60 seconds",
-  currency: "Rupee",
+  apiVersionId: 'v1',
+  bucketUrl: 'uploads/example',
+  clearOrderDataAfter: '2 years',
+  appRefresh: '60 seconds',
+  currency: 'Rupee',
 };
 
 export default function App() {
@@ -31,17 +32,14 @@ export default function App() {
     ...DEFAULT_SETTINGS,
   });
 
-  const handleChange = <K extends keyof Settings>(
-    key: K,
-    value: Settings[K]
-  ) => {
+  const handleChange = <K extends keyof Settings>(key: K, value: Settings[K]) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleSave = () => {
     savedRef.current = JSON.parse(JSON.stringify(settings));
     setIsEditing(false);
-    alert("Settings saved!");
+    toast.success('Settings saved!');
   };
 
   const handleRefresh = () => {
@@ -52,12 +50,9 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-6">
       <div className="bg-white w-[520px] rounded-2xl shadow-xl border border-gray-200">
-
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-gray-800">
-            App Settings
-          </h2>
+          <h2 className="text-lg font-semibold text-gray-800">App Settings</h2>
           <span className="text-xs bg-gray-100 px-2 py-1 rounded-md text-gray-500">
             Version: {settings.apiVersionId}
           </span>
@@ -65,14 +60,11 @@ export default function App() {
 
         {/* Content */}
         <div className="p-6 space-y-6">
-
           <Row label="Show Errors At Mobile">
             <Toggle
               enabled={settings.showErrorsAtMobile}
               disabled={!isEditing}
-              onChange={(val) =>
-                handleChange("showErrorsAtMobile", val)
-              }
+              onChange={(val) => handleChange('showErrorsAtMobile', val)}
             />
           </Row>
 
@@ -82,12 +74,7 @@ export default function App() {
               step="0.01"
               value={settings.imageClassificationRating}
               disabled={!isEditing}
-              onChange={(e) =>
-                handleChange(
-                  "imageClassificationRating",
-                  Number(e.target.value)
-                )
-              }
+              onChange={(e) => handleChange('imageClassificationRating', Number(e.target.value))}
               className="w-28 border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100"
             />
           </Row>
@@ -112,9 +99,7 @@ export default function App() {
             <select
               value={settings.clearOrderDataAfter}
               disabled={!isEditing}
-              onChange={(e) =>
-                handleChange("clearOrderDataAfter", e.target.value)
-              }
+              onChange={(e) => handleChange('clearOrderDataAfter', e.target.value)}
               className="border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100"
             >
               <option value="6 months">6 months</option>
@@ -128,9 +113,7 @@ export default function App() {
             <select
               value={settings.appRefresh}
               disabled={!isEditing}
-              onChange={(e) =>
-                handleChange("appRefresh", e.target.value)
-              }
+              onChange={(e) => handleChange('appRefresh', e.target.value)}
               className="border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100"
             >
               <option value="30 seconds">30 seconds</option>
@@ -143,9 +126,7 @@ export default function App() {
             <select
               value={settings.currency}
               disabled={!isEditing}
-              onChange={(e) =>
-                handleChange("currency", e.target.value)
-              }
+              onChange={(e) => handleChange('currency', e.target.value)}
               className="border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100"
             >
               <option value="Rupee">Rupee</option>
@@ -188,18 +169,10 @@ export default function App() {
 
 /* ================= ROW COMPONENT ================= */
 
-function Row({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex justify-between items-center">
-      <span className="font-medium text-sm text-gray-700">
-        {label}
-      </span>
+      <span className="font-medium text-sm text-gray-700">{label}</span>
       {children}
     </div>
   );
@@ -222,13 +195,13 @@ function Toggle({
       disabled={disabled}
       onClick={() => onChange(!enabled)}
       className={`relative inline-flex h-6 w-11 items-center rounded-full transition
-        ${enabled ? "bg-blue-600" : "bg-gray-300"}
-        ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
+        ${enabled ? 'bg-blue-600' : 'bg-gray-300'}
+        ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
       `}
     >
       <span
         className={`inline-block h-4 w-4 transform rounded-full bg-white transition
-          ${enabled ? "translate-x-6" : "translate-x-1"}
+          ${enabled ? 'translate-x-6' : 'translate-x-1'}
         `}
       />
     </button>

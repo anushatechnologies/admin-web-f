@@ -1,14 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Box,
-  Paper,
-  TextField,
-  Button,
-  Typography,
-  Alert,
-  Fade,
-  Link,
-} from '@mui/material';
+import { Box, Paper, TextField, Button, Typography, Alert, Fade, Link } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useRegisterMutation } from '@features/auth/api/authApi';
 import { showSnackbar } from '@components/snackbarUtils';
@@ -46,10 +37,15 @@ const RegisterPage: React.FC = () => {
   };
 
   return (
-    <Box className={`min-h-screen flex items-center justify-center bg-gray-50 p-1 ${styles.registerPage}`}>
+    <Box
+      className={`min-h-screen flex items-center justify-center bg-gray-50 p-1 ${styles.registerPage}`}
+    >
       <Fade in timeout={600}>
         <Paper elevation={0} className={styles.registerPaper} sx={{ maxWidth: '1000px' }}>
-          <Box className={`${styles.registerContainer} grid`} sx={{ gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}>
+          <Box
+            className={`${styles.registerContainer} grid`}
+            sx={{ gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}
+          >
             {/* LEFT SECTION - FORM */}
             <Box className={styles.formSection}>
               <Box className={styles.headerBox}>

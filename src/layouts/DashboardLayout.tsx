@@ -14,7 +14,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
       {/* Main content */}
       <div className="flex flex-col flex-1 overflow-auto">
         <AppBar />
-        <main className="flex-1 p-2 bg-gray-50 overflow-auto">
+        <main className="flex-1 p-2 bg-transparent overflow-auto">
           <Box className="max-w-full overflow-x-auto">{children}</Box>
         </main>
       </div>
