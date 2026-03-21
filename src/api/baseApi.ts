@@ -5,9 +5,12 @@ import { logoutUser } from '@features/auth/authSlice';
 const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
   const rawBaseQuery = fetchBaseQuery({
     baseUrl: import.meta.env.VITE_API_BASE_URL, // ✅ Uses your .env
-    prepareHeaders: (headers) => {
-      headers.set('Content-Type', 'application/json');
-      // ✅ FIXED: Use localStorage instead of Cookies
+    prepareHeaders: (headers, { arg }) => {
+      if (arg && typeof arg === 'object' && 'body' in arg && arg.body instanceof FormData) {
+        // Don't set Content-Type for FormData, let the browser handle it
+      } else {
+        headers.set('Content-Type', 'application/json');
+      }
       const token = localStorage.getItem('token') || '';
       headers.set('Authorization', `Bearer ${token}`);
       headers.set('sessionid', localStorage.getItem('sessionid') || '');
@@ -43,7 +46,7 @@ export const baseApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ['User'],
+  tagTypes: ['User', 'Banners'],
   endpoints: () => ({}),
 });
 
@@ -51,6 +54,6 @@ export const baseApi = createApi({
 export const baseApiWithAuth = createApi({
   reducerPath: 'baseApiWithAuth',
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['Dashboard'],
+  tagTypes: ['Dashboard', 'Orders', 'AdminOrders', 'User', 'Stores', 'Category', 'SubCategory', 'Product', 'Banners'],
   endpoints: () => ({}),
 });

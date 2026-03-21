@@ -1,156 +1,107 @@
-// const API_BASE_URL = 'http://localhost:9000/api/subcategories';
+import { baseApiWithAuth } from '@api/baseApi';
+import { SubCategory } from '../../types/index';
 
-// import { SubCategory } from '../../types/index';
-
-// // Frontend request shape (flattened)
-// export interface SubCategoryRequest {
-//   name: string;
-//   description?: string;
-//   isActive: boolean;
-//   displayOrder: number;
-//   discount: number;
-//   categoryId: number;
-// }
-
-// // Helper to convert frontend request to backend payload (expects category object)
-// const toBackendPayload = (data: SubCategoryRequest) => ({
-//   name: data.name,
-//   description: data.description || '',
-//   isActive: data.isActive,
-//   displayOrder: data.displayOrder,
-//   discount: data.discount,
-//   category: { id: data.categoryId },
-// });
-
-// // GET subcategories by category ID
-// export const fetchSubCategoriesByCategory = async (categoryId: number): Promise<SubCategory[]> => {
-//   const res = await fetch(`${API_BASE_URL}/${categoryId}`);
-//   if (!res.ok) throw new Error('Failed to fetch subcategories');
-//   return res.json();
-// };
-
-// // GET single subcategory by ID
-// export const fetchSubCategoryById = async (id: number): Promise<SubCategory> => {
-//   const res = await fetch(`${API_BASE_URL}/detail/${id}`);
-//   if (!res.ok) throw new Error('SubCategory not found');
-//   return res.json();
-// };
-
-// // CREATE
-// export const createSubCategory = async (data: SubCategoryRequest): Promise<SubCategory> => {
-//   const payload = toBackendPayload(data);
-//   const res = await fetch(API_BASE_URL, {
-//     method: 'POST',
-//     headers: { 'Content-Type': 'application/json' },
-//     body: JSON.stringify(payload),
-//   });
-//   if (!res.ok) throw new Error('Failed to create subcategory');
-//   return res.json();
-// };
-
-// // UPDATE
-// export const updateSubCategory = async (id: number, data: SubCategoryRequest): Promise<SubCategory> => {
-//   const payload = toBackendPayload(data);
-//   const res = await fetch(`${API_BASE_URL}/${id}`, {
-//     method: 'PUT',
-//     headers: { 'Content-Type': 'application/json' },
-//     body: JSON.stringify(payload),
-//   });
-//   if (!res.ok) throw new Error('Failed to update subcategory');
-//   return res.json();
-// };
-
-// // Soft delete
-// export const deleteSubCategory = async (id: number): Promise<void> => {
-//   const res = await fetch(`${API_BASE_URL}/${id}`, { method: 'DELETE' });
-//   if (!res.ok) throw new Error('Failed to delete subcategory');
-// };
-
-// // Hard delete
-// export const hardDeleteSubCategory = async (id: number): Promise<void> => {
-//   const res = await fetch(`${API_BASE_URL}/${id}/hard`, { method: 'DELETE' });
-//   if (!res.ok) throw new Error('Failed to permanently delete subcategory');
-// };
-
-// const API_BASE_URL = 'http://localhost:9000/api/subcategories';
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const API_BASE_URL = `${BASE_URL}/subcategories`;
-
-import { SubCategory } from '../types';
-
-// Frontend request shape (flattened)
 export interface SubCategoryRequest {
   name: string;
-  description?: string;
+  description: string;
   isActive: boolean;
   displayOrder: number;
   discount: number;
   categoryId: number;
 }
 
-// Helper to convert frontend request to backend payload (expects category object)
-const toBackendPayload = (data: SubCategoryRequest) => ({
-  name: data.name,
-  description: data.description || '',
-  isActive: data.isActive,
-  displayOrder: data.displayOrder,
-  discount: data.discount,
-  categoryId: data.categoryId,
+export const subCategoryApi = baseApiWithAuth.injectEndpoints({
+  endpoints: (builder) => ({
+    // 4.1 Get Subcategories by Category
+    getSubCategoriesByCategory: builder.query<SubCategory[], number>({
+      query: (categoryId) => `/subcategories/${categoryId}`,
+      providesTags: (result, error, categoryId) => [{ type: 'SubCategory' as any, id: `cat-${categoryId}` }],
+    }),
+
+    // 4.2 Get Subcategory by ID
+    getSubCategoryById: builder.query<SubCategory, number>({
+      query: (id) => `/subcategories/detail/${id}`,
+      providesTags: (result, error, id) => [{ type: 'SubCategory' as any, id }],
+    }),
+
+    // 4.3 Get All Subcategories
+    getAllSubCategories: builder.query<SubCategory[], void>({
+      query: () => '/subcategories',
+      providesTags: ['SubCategory' as any],
+    }),
+
+    // 4.4 & 4.6 Create Subcategory (Supports JSON or Multipart)
+    createSubCategory: builder.mutation<SubCategory, { subCategory: SubCategoryRequest; image?: File; video?: File }>({
+      query: ({ subCategory, image, video }) => {
+        if (!image && !video) {
+          return {
+            url: '/subcategories',
+            method: 'POST',
+            body: subCategory,
+          };
+        }
+        const formData = new FormData();
+        formData.append('subCategory', new Blob([JSON.stringify(subCategory)], { type: 'application/json' }));
+        if (image) formData.append('image', image);
+        if (video) formData.append('video', video);
+        return {
+          url: '/subcategories',
+          method: 'POST',
+          body: formData,
+        };
+      },
+      invalidatesTags: ['SubCategory' as any],
+    }),
+
+    // 4.5 & 4.7 Update Subcategory (Supports JSON or Multipart)
+    updateSubCategory: builder.mutation<SubCategory, { id: number; subCategory: SubCategoryRequest; image?: File; video?: File }>({
+      query: ({ id, subCategory, image, video }) => {
+        if (!image && !video) {
+          return {
+            url: `/subcategories/${id}`,
+            method: 'PUT',
+            body: subCategory,
+          };
+        }
+        const formData = new FormData();
+        formData.append('subCategory', new Blob([JSON.stringify(subCategory)], { type: 'application/json' }));
+        if (image) formData.append('image', image);
+        if (video) formData.append('video', video);
+        return {
+          url: `/subcategories/${id}`,
+          method: 'PUT',
+          body: formData,
+        };
+      },
+      invalidatesTags: (result, error, { id }) => ['SubCategory' as any, { type: 'SubCategory' as any, id }],
+    }),
+
+    // 4.8 Soft Delete
+    deleteSubCategory: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `/subcategories/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['SubCategory' as any],
+    }),
+
+    // 4.9 Hard Delete
+    hardDeleteSubCategory: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `/subcategories/${id}/hard`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['SubCategory' as any],
+    }),
+  }),
 });
 
-// GET subcategories by category ID (active only, ordered by displayOrder)
-export const fetchSubCategoriesByCategory = async (categoryId: number): Promise<SubCategory[]> => {
-  const res = await fetch(`${API_BASE_URL}/${categoryId}`);
-  if (!res.ok) throw new Error('Failed to fetch subcategories');
-  return res.json();
-};
-
-// GET single subcategory by ID
-export const fetchSubCategoryById = async (id: number): Promise<SubCategory> => {
-  const res = await fetch(`${API_BASE_URL}/detail/${id}`);
-  if (!res.ok) throw new Error('SubCategory not found');
-  return res.json();
-};
-
-// CREATE subcategory
-export const createSubCategory = async (data: SubCategoryRequest): Promise<SubCategory> => {
-  const payload = toBackendPayload(data);
-  const res = await fetch(API_BASE_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) throw new Error('Failed to create subcategory');
-  return res.json();
-};
-export const fetchAllSubCategories = async (): Promise<SubCategory[]> => {
-  const res = await fetch(API_BASE_URL);
-  if (!res.ok) throw new Error('Failed to fetch subcategories');
-  return res.json();
-};
-// UPDATE subcategory
-export const updateSubCategory = async (
-  id: number,
-  data: SubCategoryRequest,
-): Promise<SubCategory> => {
-  const payload = toBackendPayload(data);
-  const res = await fetch(`${API_BASE_URL}/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) throw new Error('Failed to update subcategory');
-  return res.json();
-};
-
-// Soft delete (sets isActive=false)
-export const deleteSubCategory = async (id: number): Promise<void> => {
-  const res = await fetch(`${API_BASE_URL}/${id}`, { method: 'DELETE' });
-  if (!res.ok) throw new Error('Failed to delete subcategory');
-};
-
-// Hard delete (permanent)
-export const hardDeleteSubCategory = async (id: number): Promise<void> => {
-  const res = await fetch(`${API_BASE_URL}/${id}/hard`, { method: 'DELETE' });
-  if (!res.ok) throw new Error('Failed to permanently delete subcategory');
-};
+export const {
+  useGetSubCategoriesByCategoryQuery,
+  useGetSubCategoryByIdQuery,
+  useGetAllSubCategoriesQuery,
+  useCreateSubCategoryMutation,
+  useUpdateSubCategoryMutation,
+  useDeleteSubCategoryMutation,
+  useHardDeleteSubCategoryMutation,
+} = subCategoryApi;

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Box, TextField, Button, Typography } from '@mui/material';
-import { FORGOT_PASSWORD_CONTENT } from '@utils/uiContent';
 import { showSnackbar } from '@components/snackbarUtils';
 
 interface Props {
@@ -28,19 +27,19 @@ const ForgotPasswordForm: React.FC<Props> = ({ onSubmit, onBack, isLoading }) =>
   };
 
   return (
-    <Box>
-      <Box sx={{ mb: 4 }}>
-        <Typography sx={{ fontSize: 28, fontWeight: 700, color: '#1a1a1a', mb: 1 }}>
+    <Box sx={{ maxWidth: 400, mx: 'auto', p: { xs: 2, md: 4 } }}>
+      <Box sx={{ mb: 4, textAlign: 'center' }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, color: 'var(--text-color)', mb: 1 }}>
           Forgot Password?
         </Typography>
-        <Typography sx={{ fontSize: 14, color: '#666' }}>
-          {FORGOT_PASSWORD_CONTENT.DESCRIPTION_REQUEST}
+        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          Enter your registered email address to receive an OTP code to reset your password.
         </Typography>
       </Box>
 
       <Box component="form" onSubmit={handleSubmit}>
         <Box sx={{ mb: 3 }}>
-          <Typography sx={{ fontSize: 14, color: '#1a1a1a', mb: 1, fontWeight: 500 }}>
+          <Typography sx={{ fontSize: 14, color: 'var(--text-color)', mb: 1, fontWeight: 500 }}>
             Email Address
           </Typography>
           <TextField
@@ -52,11 +51,8 @@ const ForgotPasswordForm: React.FC<Props> = ({ onSubmit, onBack, isLoading }) =>
             disabled={isLoading}
             sx={{
               '& .MuiOutlinedInput-root': {
-                bgcolor: 'white',
-                borderRadius: 3,
-                '& fieldset': { borderColor: 'transparent' },
-                '&:hover fieldset': { borderColor: '#1565c0' },
-                '&.Mui-focused fieldset': { borderColor: '#1565c0' },
+                bgcolor: 'var(--card-bg)',
+                borderRadius: 2,
               },
             }}
           />
@@ -70,31 +66,27 @@ const ForgotPasswordForm: React.FC<Props> = ({ onSubmit, onBack, isLoading }) =>
           sx={{
             py: 1.5,
             mb: 2,
-            borderRadius: 3,
+            borderRadius: 2,
             textTransform: 'none',
             fontSize: 16,
             fontWeight: 600,
-            bgcolor: '#1565c0',
-            '&:hover': { bgcolor: '#0d47a1' },
           }}
         >
           {isLoading ? 'Sending OTP...' : 'Send OTP Code'}
         </Button>
 
         <Box sx={{ textAlign: 'center', mt: 2 }}>
-          <Button
-            size="small"
+          <Typography
+            variant="body2"
             onClick={onBack}
-            disabled={isLoading}
             sx={{
-              textTransform: 'none',
-              color: '#1565c0',
-              fontSize: 13,
+              color: 'var(--highlight-color)',
+              cursor: 'pointer',
               '&:hover': { textDecoration: 'underline' },
             }}
           >
             ← Back to Login
-          </Button>
+          </Typography>
         </Box>
       </Box>
     </Box>

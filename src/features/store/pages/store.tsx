@@ -8,7 +8,9 @@ import {
   deleteStore,
   Store as ApiStore,
   StoreRequest,
-} from '../api/storeapi';
+} from '../api/storeApi';
+import ReusableTable from '../../../components/common/ReusableTable';
+import ConfirmDialog from '../../../components/ConfirmDialog';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -37,6 +39,7 @@ export default function StoreList() {
   const [editData, setEditData] = useState<StoreType | null>(null);
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [confirmId, setConfirmId] = useState<number | null>(null);
 
   const [debouncedSearch, setDebouncedSearch] = useState(search);
   useEffect(() => {
@@ -48,7 +51,7 @@ export default function StoreList() {
     setLoading(true);
     try {
       const data = await fetchStores(debouncedSearch || undefined);
-      const mapped: StoreType[] = data.map((item) => ({
+      const mapped: StoreType[] = data.map((item: any) => ({
         ...item,
         image: item.imageUrl,
       }));
@@ -66,16 +69,14 @@ export default function StoreList() {
   }, [loadStores]);
 
   const totalPages = Math.ceil(stores.length / ITEMS_PER_PAGE);
-  const currentData = stores.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE,
-  );
+  const paginatedData = stores.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   const handleCreate = async (storeData: StoreRequest, imageFile?: File) => {
     try {
       await createStore(storeData, imageFile);
       await loadStores();
       setShowModal(false);
+      toast.success('Store created successfully');
     } catch (error: any) {
       toast.error(error.message || 'Failed to create store');
     }
@@ -87,15 +88,16 @@ export default function StoreList() {
       await loadStores();
       setShowModal(false);
       setEditData(null);
+      toast.success('Store updated successfully');
     } catch (error: any) {
       toast.error(error.message || 'Failed to update store');
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this store?')) return;
     try {
       await deleteStore(id);
+      toast.success('Store deleted successfully');
       if (stores.length % ITEMS_PER_PAGE === 1 && currentPage > 1) {
         setCurrentPage((p) => p - 1);
       }
@@ -143,142 +145,78 @@ export default function StoreList() {
           </div>
         </div>
 
-        <div
-          className="rounded-xl shadow-lg border overflow-x-auto"
-          style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border-soft)' }}
-        >
-          <table className="min-w-[1400px] text-sm">
-            <thead style={{ backgroundColor: 'var(--border-soft)', color: 'var(--text-color)' }}>
-              <tr>
-                <th className="px-4 py-4 text-left font-semibold">Name</th>
-                <th className="px-4 py-4 text-left font-semibold">Address</th>
-                <th className="px-4 py-4 text-left font-semibold">Price Range</th>
-                <th className="px-4 py-4 text-left font-semibold">Phone</th>
-                <th className="px-4 py-4 text-left font-semibold">Pincode</th>
-                <th className="px-4 py-4 text-left font-semibold">City</th>
-                <th className="px-4 py-4 text-left font-semibold">Announcement</th>
-                <th className="px-4 py-4 text-left font-semibold">Delivery</th>
-                <th className="px-4 py-4 text-left font-semibold">Package</th>
-                <th className="px-4 py-4 text-left font-semibold">Active</th>
-                <th className="px-4 py-4 text-left font-semibold">Rating</th>
-                <th className="px-4 py-4 text-left font-semibold">Image</th>
-                <th className="px-4 py-4 text-left font-semibold">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading && (
-                <tr>
-                  <td colSpan={13} className="text-center py-10" style={{ opacity: 0.6 }}>
-                    Loading...
-                  </td>
-                </tr>
-              )}
-              {!loading && currentData.length === 0 && (
-                <tr>
-                  <td colSpan={13} className="text-center py-10" style={{ opacity: 0.6 }}>
-                    No Records Found
-                  </td>
-                </tr>
-              )}
-              {!loading &&
-                currentData.map((item) => (
-                  <tr
-                    key={item.id}
-                    className="border-b transition"
+        <ReusableTable
+          columns={[
+            { header: 'Name', key: 'name' },
+            { header: 'Address', key: 'address' },
+            { header: 'Price Range', key: 'priceRange' },
+            { header: 'Phone', key: 'phoneNumber' },
+            { header: 'Pincode', key: 'pincode' },
+            { header: 'City', key: 'city' },
+            { header: 'Announcement', key: 'announcement' },
+            { header: 'Delivery', key: 'delivery' },
+            { header: 'Package', key: 'packageCost' },
+            {
+              header: 'Active',
+              key: 'active',
+              render: (item: StoreType) =>
+                item.active ? (
+                  <span className="text-green-500 font-medium">Active</span>
+                ) : (
+                  <span className="text-red-500 font-medium">Inactive</span>
+                ),
+            },
+            {
+              header: 'Rating',
+              key: 'rating',
+              render: (item: StoreType) => `⭐ ${item.rating || 0}`,
+            },
+            {
+              header: 'Image',
+              key: 'image',
+              render: (item: StoreType) =>
+                item.image ? (
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="w-12 h-12 object-cover rounded-lg border shadow-sm"
                     style={{ borderColor: 'var(--border-soft)' }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.backgroundColor = 'rgba(150, 150, 150, 0.05)')
-                    }
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  />
+                ) : (
+                  '-'
+                ),
+            },
+            {
+              header: 'Action',
+              key: 'id',
+              render: (item: StoreType) => (
+                <div className="space-x-2">
+                  <button
+                    onClick={() => {
+                      setEditData(item);
+                      setShowModal(true);
+                    }}
+                    className="text-white px-3 py-1 rounded text-xs transition hover:opacity-80 shadow-sm"
+                    style={{ backgroundColor: 'var(--highlight-color)' }}
                   >
-                    <td className="px-4 py-3 font-medium">{item.name}</td>
-                    <td className="px-4 py-3 opacity-90">{item.address}</td>
-                    <td className="px-4 py-3 opacity-90">{item.priceRange}</td>
-                    <td className="px-4 py-3 opacity-90">{item.phoneNumber}</td>
-                    <td className="px-4 py-3 opacity-90">{item.pincode}</td>
-                    <td className="px-4 py-3 opacity-90">{item.city}</td>
-                    <td className="px-4 py-3 opacity-90">{item.announcement}</td>
-                    <td className="px-4 py-3 opacity-90">{item.delivery}</td>
-                    <td className="px-4 py-3 opacity-90">{item.packageCost}</td>
-                    <td className="px-4 py-3">
-                      {item.active ? (
-                        <span className="text-green-500 font-medium">Active</span>
-                      ) : (
-                        <span className="text-red-500 font-medium">Inactive</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">⭐ {item.rating}</td>
-                    <td className="px-4 py-3">
-                      {item.image ? (
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="w-12 h-12 object-cover rounded-lg border shadow-sm"
-                          style={{ borderColor: 'var(--border-soft)' }}
-                        />
-                      ) : (
-                        '-'
-                      )}
-                    </td>
-                    <td className="px-4 py-3 space-x-2">
-                      <button
-                        onClick={() => {
-                          setEditData(item);
-                          setShowModal(true);
-                        }}
-                        className="text-white px-3 py-1 rounded text-xs transition hover:opacity-80 shadow-sm"
-                        style={{ backgroundColor: 'var(--highlight-color)' }}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className="bg-red-500 text-white px-3 py-1 rounded text-xs transition hover:opacity-80 shadow-sm"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2 p-4">
-              <button
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage((p) => p - 1)}
-                className="px-3 py-1 border rounded disabled:opacity-50 transition hover:opacity-80"
-                style={{ borderColor: 'var(--border-soft)', color: 'var(--text-color)' }}
-              >
-                Prev
-              </button>
-              {[...Array(totalPages)].map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentPage(i + 1)}
-                  className={`px-3 py-1 border rounded transition`}
-                  style={{
-                    borderColor: 'var(--border-soft)',
-                    backgroundColor:
-                      currentPage === i + 1 ? 'var(--highlight-color)' : 'transparent',
-                    color: currentPage === i + 1 ? '#fff' : 'var(--text-color)',
-                  }}
-                >
-                  {i + 1}
-                </button>
-              ))}
-              <button
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage((p) => p + 1)}
-                className="px-3 py-1 border rounded disabled:opacity-50 transition hover:opacity-80"
-                style={{ borderColor: 'var(--border-soft)', color: 'var(--text-color)' }}
-              >
-                Next
-              </button>
-            </div>
-          )}
-        </div>
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => setConfirmId(item.id)}
+                    className="bg-red-500 text-white px-3 py-1 rounded text-xs transition hover:opacity-80 shadow-sm"
+                  >
+                    Delete
+                  </button>
+                </div>
+              ),
+            },
+          ]}
+          data={paginatedData}
+          loading={loading}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
 
         {showModal && (
           <AddForm
@@ -297,6 +235,17 @@ export default function StoreList() {
           />
         )}
       </div>
+
+      <ConfirmDialog
+        open={confirmId !== null}
+        title="Delete Store"
+        message="Are you sure you want to delete this store?"
+        onConfirm={() => {
+          if (confirmId !== null) handleDelete(confirmId);
+          setConfirmId(null);
+        }}
+        onCancel={() => setConfirmId(null)}
+      />
     </div>
   );
 }

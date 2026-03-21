@@ -78,6 +78,17 @@ body {
   --highlight-color: #a78bfa;
   --backdrop-blur: blur(12px);
 }
+
+/* --- Policy Component Styling (system mode) --- */
+.policy {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: var(--btn-shadow);
+}
+
 .dark-theme img[data-dark] {
   filter: brightness(0.85);
 }
@@ -152,6 +163,15 @@ body {
   background-color: #1a1a1a !important;
 }
 
+/* --- Standard HTML Elements Dark Mode --- */
+.dark-theme input,
+.dark-theme select,
+.dark-theme textarea,
+.dark-theme option {
+  background-color: var(--bg-color) !important;
+  color: var(--text-color) !important;
+}
+
 /* --- Dark Mode MUI Overrides --- */
 .dark-theme .MuiPaper-root,
 .dark-theme .MuiCard-root {
@@ -200,4 +220,15 @@ body {
   color: #aaaaaa !important;
 }
 
+.dark-theme .MuiPaginationItem-root {
+  color: var(--text-color) !important;
+}
 
+.dark-theme .MuiPaginationItem-root.Mui-selected {
+  background-color: var(--highlight-color) !important;
+  color: #ffffff !important;
+}
+
+.dark-theme .MuiPaginationItem-root:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}

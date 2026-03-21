@@ -55,6 +55,7 @@ const ResetPasswordForm: React.FC<Props> = ({ email, onSubmit, onBack, isLoading
         component="form"
         onSubmit={handleSubmit}
         sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}
+        autoComplete="off"
       >
         <Box>
           <Typography sx={{ fontSize: 14, fontWeight: 500, mb: 1 }}>OTP (6 digits)</Typography>
@@ -62,9 +63,9 @@ const ResetPasswordForm: React.FC<Props> = ({ email, onSubmit, onBack, isLoading
             fullWidth
             value={otp}
             onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
-            placeholder="123456"
             inputProps={{ maxLength: 6 }}
             disabled={isLoading}
+            autoComplete="off"
             sx={{
               '& .MuiInputBase-input': {
                 textAlign: 'center',
@@ -83,8 +84,8 @@ const ResetPasswordForm: React.FC<Props> = ({ email, onSubmit, onBack, isLoading
             type={showPassword ? 'text' : 'password'}
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
-            placeholder="Enter new password (min 6 chars)"
             disabled={isLoading}
+            autoComplete="new-password"
             sx={{
               '& .MuiOutlinedInput-root': {
                 borderRadius: 3,

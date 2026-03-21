@@ -4,11 +4,14 @@ import { baseApi } from '@api/baseApi';
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // Register
-    register: builder.mutation<any, { email: string; password: string }>({
+    register: builder.mutation<any, { email: string; password: string; role?: string }>({
       query: (body) => ({
         url: '/auth/register',
         method: 'POST',
-        body,
+        body: {
+          ...body,
+          role: body.role || 'ADMIN' // Default to ADMIN as per Section 1.4
+        },
       }),
       invalidatesTags: ['User'],
     }),

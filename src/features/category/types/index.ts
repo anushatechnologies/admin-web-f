@@ -18,11 +18,24 @@ export interface SubCategory {
   isActive: boolean;
   displayOrder: number;
   discount: number;
+  imageUrl?: string;
+  videoUrl?: string;
   category: Category; // Backend returns full category object
   products?: Product[];
   createdAt?: string;
   updatedAt?: string;
 }
+export interface ProductVariant {
+  id: number;
+  name: string;
+  sku: string;
+  price: number;
+  discountPrice: number;
+  stock: number;
+  isActive: boolean;
+  displayOrder: number;
+}
+
 export interface Product {
   id: number;
   name: string;
@@ -43,6 +56,8 @@ export interface Product {
   storeName?: string;
   createdAt?: string;
   updatedAt?: string;
+  bestSeller: boolean;
+  variants?: ProductVariant[]; // Added variants
 }
 
 export interface Store {

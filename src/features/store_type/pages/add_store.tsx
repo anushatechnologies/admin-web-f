@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { fetchStores as fetchMainStores, Store as MainStore } from '../../store/api/storeapi';
+import { fetchStores as fetchMainStores, Store as MainStore } from '../../store/api/storeApi';
 
 type Props = {
   initialData?: any;
@@ -126,9 +126,8 @@ export default function AddStoreType({ initialData, onSave, onClose }: Props) {
               style={{ backgroundColor: active ? 'var(--highlight-color)' : 'var(--border-soft)' }}
             >
               <div
-                className={`bg-white w-5 h-5 rounded-full shadow-md transform transition ${
-                  active ? 'translate-x-7' : ''
-                }`}
+                className={`bg-white w-5 h-5 rounded-full shadow-md transform transition ${active ? 'translate-x-7' : ''
+                  }`}
               />
             </button>
           </div>

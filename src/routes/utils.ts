@@ -15,11 +15,13 @@ import {
 import LocalAtmIcon from '@mui/icons-material/LocalAtm';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import CampaignIcon from '@mui/icons-material/Campaign';
 
 export interface RouteLinkItem {
   name: string;
   path: string;
   Icon: any;
+  roles?: string[];
 }
 
 export interface RouteLinkGroup {
@@ -32,6 +34,15 @@ export const RouteLinks: RouteLinkGroup[] = [
   {
     section: 'Dashboard',
     links: [{ name: 'Dashboard', path: '/', Icon: Dashboard }],
+  },
+  
+  // ---------------- ORDERS ----------------
+  {
+    section: 'Orders',
+    links: [
+      { name: 'My Orders', path: '/my-orders', Icon: Inventory2, roles: ['CUSTOMER', 'USER', 'ROLE_USER'] },
+      { name: 'Manage Orders', path: '/admin/orders', Icon: Inventory2, roles: ['ADMIN', 'ROLE_ADMIN'] },
+    ],
   },
 
   // ---------------- GOODS (Catalog) ----------------
@@ -68,8 +79,25 @@ export const RouteLinks: RouteLinkGroup[] = [
   {
     section: 'Delivery',
     links: [
-      { name: 'Delivery', path: '/delivery', Icon: LocalShipping },
-      { name: 'Delivery Setup', path: '/delivery_setup', Icon: Settings },
+      { name: 'Dashboard', path: '/delivery/dashboard', Icon: Dashboard },
+      { name: 'Personnel', path: '/delivery/personnel', Icon: People },
+      { name: 'Documents', path: '/delivery/documents', Icon: Description },
+    ],
+  },
+
+  // ---------------- FINANCIALS ----------------
+  {
+    section: 'Financials',
+    links: [
+      { name: 'Payouts', path: '/admin/payouts', Icon: LocalAtmIcon },
+    ],
+  },
+
+  // ---------------- MARKETING ----------------
+  {
+    section: 'Marketing',
+    links: [
+      { name: 'Banners', path: '/marketing/banners', Icon: CampaignIcon },
     ],
   },
 

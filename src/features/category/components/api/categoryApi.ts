@@ -1,83 +1,92 @@
-// const API_BASE_URL = 'http://localhost:9000/api/categories';
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const API_BASE_URL = `${BASE_URL}/categories`;
-
+import { baseApiWithAuth } from '@api/baseApi';
 import { Category } from '../../types/index';
+export type { Category };
 
-// For creating/updating we send JSON (but image is separate in FormData)
-export type CategoryRequest = Omit<Category, 'id' | 'createdAt' | 'updatedAt'>;
+export type CategoryRequest = Omit<Category, 'id' | 'createdAt' | 'updatedAt' | 'imageUrl'>;
 
-// GET all active categories
-export const fetchCategories = async (): Promise<Category[]> => {
-  const res = await fetch(API_BASE_URL);
-  if (!res.ok) throw new Error('Failed to fetch categories');
-  return res.json();
-};
+export const categoryApi = baseApiWithAuth.injectEndpoints({
+  endpoints: (builder) => ({
+    // 3.1 Get All Categories
+    getCategories: builder.query<Category[], void>({
+      query: () => '/categories',
+      providesTags: ['Category' as any], // We'll add 'Category' to baseApi tagTypes soon
+    }),
 
-// GET category by ID
-export const fetchCategoryById = async (id: number): Promise<Category> => {
-  const res = await fetch(`${API_BASE_URL}/${id}`);
-  if (!res.ok) throw new Error('Category not found');
-  return res.json();
-};
+    // 3.2 Get Category by ID
+    getCategoryById: builder.query<Category, number>({
+      query: (id) => `/categories/${id}`,
+      providesTags: (result, error, id) => [{ type: 'Category' as any, id }],
+    }),
 
-// CREATE category with multipart/form-data
-export const createCategory = async (
-  data: CategoryRequest,
-  imageFile?: File,
-): Promise<Category> => {
-  const formData = new FormData();
-  formData.append('category', new Blob([JSON.stringify(data)], { type: 'application/json' }));
-  if (imageFile) formData.append('image', imageFile);
+    // 3.3 Create Category
+    createCategory: builder.mutation<Category, { category: CategoryRequest; image?: File }>({
+      query: ({ category, image }) => {
+        const formData = new FormData();
+        formData.append('category', new Blob([JSON.stringify(category)], { type: 'application/json' }));
+        if (image) formData.append('image', image);
+        return {
+          url: '/categories',
+          method: 'POST',
+          body: formData,
+        };
+      },
+      invalidatesTags: ['Category' as any],
+    }),
 
-  const res = await fetch(API_BASE_URL, {
-    method: 'POST',
-    body: formData,
-  });
-  if (!res.ok) throw new Error('Failed to create category');
-  return res.json();
-};
+    // 3.4 Update Category
+    updateCategory: builder.mutation<Category, { id: number; category: CategoryRequest; image?: File }>({
+      query: ({ id, category, image }) => {
+        const formData = new FormData();
+        formData.append('category', new Blob([JSON.stringify(category)], { type: 'application/json' }));
+        if (image) formData.append('image', image);
+        return {
+          url: `/categories/${id}`,
+          method: 'PUT',
+          body: formData,
+        };
+      },
+      invalidatesTags: (result, error, { id }) => ['Category' as any, { type: 'Category' as any, id }],
+    }),
 
-// UPDATE category with multipart/form-data
-export const updateCategory = async (
-  id: number,
-  data: CategoryRequest,
-  imageFile?: File,
-): Promise<Category> => {
-  const formData = new FormData();
-  formData.append('category', new Blob([JSON.stringify(data)], { type: 'application/json' }));
-  if (imageFile) formData.append('image', imageFile);
+    // 3.5 Soft Delete
+    deleteCategory: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `/categories/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Category' as any],
+    }),
 
-  const res = await fetch(`${API_BASE_URL}/${id}`, {
-    method: 'PUT',
-    body: formData,
-  });
-  if (!res.ok) throw new Error('Failed to update category');
-  return res.json();
-};
+    // 3.6 Hard Delete
+    hardDeleteCategory: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `/categories/${id}/hard`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Category' as any],
+    }),
 
-// Soft delete
-export const deleteCategory = async (id: number): Promise<void> => {
-  const res = await fetch(`${API_BASE_URL}/${id}`, { method: 'DELETE' });
-  if (!res.ok) throw new Error('Failed to delete category');
-};
+    // 3.7 Search Categories
+    searchCategories: builder.query<Category[], string>({
+      query: (keyword) => `/categories/search?keyword=${encodeURIComponent(keyword)}`,
+      providesTags: ['Category' as any],
+    }),
 
-// Hard delete
-export const hardDeleteCategory = async (id: number): Promise<void> => {
-  const res = await fetch(`${API_BASE_URL}/${id}/hard`, { method: 'DELETE' });
-  if (!res.ok) throw new Error('Failed to permanently delete category');
-};
+    // 3.8 Filter by Discount
+    filterCategoriesByDiscount: builder.query<Category[], number>({
+      query: (minDiscount) => `/categories/filter/discount?minDiscount=${minDiscount}`,
+      providesTags: ['Category' as any],
+    }),
+  }),
+});
 
-// Search
-export const searchCategories = async (keyword: string): Promise<Category[]> => {
-  const res = await fetch(`${API_BASE_URL}/search?keyword=${encodeURIComponent(keyword)}`);
-  if (!res.ok) throw new Error('Search failed');
-  return res.json();
-};
-
-// Filter by minimum discount
-export const filterCategoriesByDiscount = async (minDiscount: number): Promise<Category[]> => {
-  const res = await fetch(`${API_BASE_URL}/filter/discount?minDiscount=${minDiscount}`);
-  if (!res.ok) throw new Error('Filter failed');
-  return res.json();
-};
+export const {
+  useGetCategoriesQuery,
+  useGetCategoryByIdQuery,
+  useCreateCategoryMutation,
+  useUpdateCategoryMutation,
+  useDeleteCategoryMutation,
+  useHardDeleteCategoryMutation,
+  useSearchCategoriesQuery,
+  useFilterCategoriesByDiscountQuery,
+} = categoryApi;

@@ -1,16 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { hardDeleteSubCategory } from '../api/subCategoryApi';
-import { fetchAllSubCategories } from '../api/subCategoryApi';
 import {
-  fetchSubCategoriesByCategory,
-  createSubCategory,
-  updateSubCategory,
-  deleteSubCategory,
-  SubCategoryRequest,
+  useGetAllSubCategoriesQuery,
+  useGetSubCategoriesByCategoryQuery,
+  useHardDeleteSubCategoryMutation,
 } from '../api/subCategoryApi';
-import { fetchCategories, Category } from '../api/categoryApi';
+import { useGetCategoriesQuery, Category } from '../api/categoryApi';
 import SubCategoryForm from './SubCategoryForm';
+import ConfirmDialog from '../../../../components/ConfirmDialog';
 import debounce from 'lodash/debounce';
 import toast from 'react-hot-toast';
 import {
@@ -37,103 +34,65 @@ import {
   Select,
   MenuItem,
   Box,
+  Avatar,
+  Link,
 } from '@mui/material';
-import { Add, Edit, Delete, Search } from '@mui/icons-material';
+import { Add, Edit, Delete, Search, Image, VideoFile } from '@mui/icons-material';
 
 const ITEMS_PER_PAGE = 5;
 
 export default function SubCategoryList() {
   const { categoryId } = useParams<{ categoryId: string }>();
   const navigate = useNavigate();
-  const [subCategories, setSubCategories] = useState<any[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingSub, setEditingSub] = useState<any>(null);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number>(0);
-  // const [selectedCategoryId, setSelectedCategoryId] = useState<number>(
-  //   categoryId ? parseInt(categoryId) : 0
-  // );
+  const [confirmId, setConfirmId] = useState<number | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number>(
+    categoryId ? parseInt(categoryId) : 0
+  );
   const [searchKeyword, setSearchKeyword] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
-  useEffect(() => {
-    fetchCategories()
-      .then(setCategories)
-      .catch((err) => console.error('Failed to load categories', err));
-  }, []);
+  // RTK Query hooks
+  const { data: categoriesData } = useGetCategoriesQuery();
+  const categories = categoriesData || [];
 
-  useEffect(() => {
-    if (selectedCategoryId) {
-      loadSubCategories(selectedCategoryId);
-    } else {
-      loadAllSubCategories();
-    }
-  }, [selectedCategoryId]);
-  const loadAllSubCategories = async () => {
-    setLoading(true);
-    try {
-      const data = await fetchAllSubCategories();
-      setSubCategories(data);
-      setCurrentPage(1);
-    } catch (error: any) {
-      toast.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-  const loadSubCategories = async (catId: number) => {
-    setLoading(true);
-    try {
-      const data = await fetchSubCategoriesByCategory(catId);
-      setSubCategories(data);
-      setCurrentPage(1);
-    } catch (error: any) {
-      toast.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: allSubCategories, isLoading: allLoading } = useGetAllSubCategoriesQuery(undefined, {
+    skip: !!selectedCategoryId,
+  });
+  const { data: catSubCategories, isLoading: catLoading } = useGetSubCategoriesByCategoryQuery(selectedCategoryId, {
+    skip: !selectedCategoryId,
+  });
 
-  const filteredSubCategories = subCategories.filter((sc) =>
+  const [hardDeleteSubCategory] = useHardDeleteSubCategoryMutation();
+
+  const loading = allLoading || catLoading;
+  const subCategories = selectedCategoryId ? (catSubCategories || []) : (allSubCategories || []);
+
+  const filteredSubCategories = subCategories.filter(sc =>
     searchKeyword
       ? sc.name.toLowerCase().includes(searchKeyword.toLowerCase()) ||
         (sc.description && sc.description.toLowerCase().includes(searchKeyword.toLowerCase()))
-      : true,
+      : true
   );
 
   const totalPages = Math.ceil(filteredSubCategories.length / ITEMS_PER_PAGE);
   const currentData = filteredSubCategories.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
   );
 
-  const handleSave = async (formData: SubCategoryRequest) => {
-    try {
-      if (editingSub) {
-        await updateSubCategory(editingSub.id, formData);
-        toast.success('SubCategory updated successfully');
-      } else {
-        await createSubCategory(formData);
-        toast.success('SubCategory created successfully');
-      }
-      await loadSubCategories(selectedCategoryId);
-      setShowModal(false);
-      setEditingSub(null);
-    } catch (error: any) {
-      toast.error(error.message);
-    }
+  const handleSave = async () => {
+    setShowModal(false);
+    setEditingSub(null);
   };
 
   const handleDelete = async (id: number) => {
-    console.log('Deleting subcategory with id', id); // <-- add this
-    if (!confirm('Delete this subcategory permanently?')) return;
     try {
-      await hardDeleteSubCategory(id);
+      await hardDeleteSubCategory(id).unwrap();
       toast.success('SubCategory deleted permanently');
-      await loadSubCategories(selectedCategoryId);
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(error.data?.message || 'Failed to delete subcategory');
     }
   };
 
@@ -155,7 +114,7 @@ export default function SubCategoryList() {
               onChange={(e) => {
                 const catId = Number(e.target.value);
                 setSelectedCategoryId(catId);
-                navigate(`/subcategories/${catId}`);
+                navigate(catId ? `/subcategories/${catId}` : '/subcategories');
               }}
               label="Category"
             >
@@ -215,8 +174,9 @@ export default function SubCategoryList() {
         <>
           <TableContainer component={Paper} elevation={3}>
             <Table>
-              <TableHead sx={{ bgcolor: 'grey.100' }}>
+              <TableHead sx={{ bgcolor: 'action.hover' }}>
                 <TableRow>
+                  <TableCell>Image</TableCell>
                   <TableCell>Name</TableCell>
                   <TableCell>Description</TableCell>
                   <TableCell>Display Order</TableCell>
@@ -228,6 +188,22 @@ export default function SubCategoryList() {
               <TableBody>
                 {currentData.map((sc) => (
                   <TableRow key={sc.id} hover>
+                    <TableCell sx={{ verticalAlign: 'middle' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {sc.imageUrl ? (
+                          <Avatar src={sc.imageUrl} variant="rounded" sx={{ width: 50, height: 50 }} />
+                        ) : (
+                          <Avatar variant="rounded" sx={{ width: 50, height: 50 }}>
+                            <Image />
+                          </Avatar>
+                        )}
+                        {sc.videoUrl && (
+                          <Link href={sc.videoUrl} target="_blank" rel="noopener" title="View video">
+                            <VideoFile fontSize="small" color="action" />
+                          </Link>
+                        )}
+                      </Box>
+                    </TableCell>
                     <TableCell>{sc.name}</TableCell>
                     <TableCell>{sc.description}</TableCell>
                     <TableCell>{sc.displayOrder}</TableCell>
@@ -250,7 +226,11 @@ export default function SubCategoryList() {
                       >
                         <Edit />
                       </IconButton>
-                      <IconButton color="error" onClick={() => handleDelete(sc.id)} size="small">
+                        <IconButton
+                          color="error"
+                          onClick={() => setConfirmId(sc.id)}
+                          size="small"
+                        >
                         <Delete />
                       </IconButton>
                     </TableCell>
@@ -295,6 +275,17 @@ export default function SubCategoryList() {
           />
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={confirmId !== null}
+        title="Delete SubCategory"
+        message="Are you sure you want to permanently delete this subcategory?"
+        onConfirm={() => {
+          if (confirmId !== null) handleDelete(confirmId);
+          setConfirmId(null);
+        }}
+        onCancel={() => setConfirmId(null)}
+      />
     </div>
   );
 }

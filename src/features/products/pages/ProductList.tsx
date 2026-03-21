@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  fetchProducts,
-  searchProducts,
-  createProduct,
-  updateProduct,
-  deleteProduct,
-  Product,
-  ProductRequest,
+  useGetProductsQuery,
+  useSearchProductsQuery,
+  useCreateProductMutation,
+  useUpdateProductMutation,
+  useDeleteProductMutation,
 } from '../api/productApi';
+import { ProductRequest } from '../api/productApi';
+import { Product } from '../../category/types/index';
 import ProductForm from './ProductForm';
 import debounce from 'lodash/debounce';
 import toast from 'react-hot-toast';
@@ -32,80 +32,74 @@ import {
   Chip,
   Avatar,
   Box,
+  Tooltip,
 } from '@mui/material';
 import { Add, Edit, Delete, Search, ImageNotSupported } from '@mui/icons-material';
+import ConfirmDialog from '../../../components/ConfirmDialog';
 
 const ITEMS_PER_PAGE = 5;
 
 export default function ProductList() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchKeyword, setSearchKeyword] = useState('');
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<number | null>(null);
 
-  const loadProducts = async (keyword = '') => {
-    setLoading(true);
-    try {
-      const data = keyword.trim() ? await searchProducts(keyword) : await fetchProducts();
-      setProducts(data);
-      setCurrentPage(1);
-    } catch (error: any) {
-      toast.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const debouncedSearch = useCallback(
-    debounce((keyword: string) => {
-      loadProducts(keyword);
-    }, 500),
-    [],
-  );
-
+  const [debouncedSearch, setDebouncedSearch] = useState(searchKeyword);
   useEffect(() => {
-    debouncedSearch(searchKeyword);
-    return () => debouncedSearch.cancel();
-  }, [searchKeyword, debouncedSearch]);
+    const timer = setTimeout(() => setDebouncedSearch(searchKeyword), 500);
+    return () => clearTimeout(timer);
+  }, [searchKeyword]);
 
-  useEffect(() => {
-    loadProducts();
-  }, []);
+  // Using RTK Query hooks
+  const { data: allProducts, isLoading: productsLoading } = useGetProductsQuery({});
+  const { data: searchedProducts, isLoading: searchLoading } = useSearchProductsQuery(debouncedSearch, {
+    skip: debouncedSearch.trim().length === 0,
+  });
+
+  const [createProduct] = useCreateProductMutation();
+  const [updateProduct] = useUpdateProductMutation();
+  const [deleteProduct] = useDeleteProductMutation();
+
+  const loading = productsLoading || searchLoading;
+  const products = debouncedSearch.trim().length > 0 ? (searchedProducts || []) : (allProducts || []);
 
   const handleSave = async (data: ProductRequest, imageFile?: File) => {
     try {
       if (editingProduct) {
-        await updateProduct(editingProduct.id, data, imageFile);
+        await updateProduct({ id: editingProduct.id, product: data, image: imageFile }).unwrap();
         toast.success('Product updated successfully');
       } else {
-        await createProduct(data, imageFile);
+        await createProduct({ product: data, image: imageFile }).unwrap();
         toast.success('Product created successfully');
       }
-      await loadProducts(searchKeyword);
+      setSearchKeyword('');           // clear search
       setShowModal(false);
       setEditingProduct(null);
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(error.data?.message || 'Failed to save product');
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Delete product?')) return;
+  const handleConfirmDelete = async () => {
+    if (productToDelete === null) return;
     try {
-      await deleteProduct(id);
+      await deleteProduct(productToDelete).unwrap();
       toast.success('Product deleted successfully');
-      await loadProducts(searchKeyword);
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(error.data?.message || 'Failed to delete product');
+    } finally {
+      setDeleteConfirmOpen(false);
+      setProductToDelete(null);
     }
   };
 
   const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
   const currentData = products.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
   );
 
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
@@ -164,18 +158,17 @@ export default function ProductList() {
         <>
           <TableContainer component={Paper} elevation={3}>
             <Table>
-              <TableHead sx={{ bgcolor: 'grey.100' }}>
+              <TableHead sx={{ bgcolor: 'var(--border-soft)' }}>
                 <TableRow>
                   <TableCell>Image</TableCell>
                   <TableCell>Name</TableCell>
-                  <TableCell>Price</TableCell>
-                  <TableCell>Discount Price</TableCell>
-                  <TableCell>Stock</TableCell>
+                  <TableCell>Variants</TableCell>
                   <TableCell>Category</TableCell>
                   <TableCell>SubCategory</TableCell>
                   <TableCell>Store</TableCell>
                   <TableCell>Active</TableCell>
                   <TableCell>Trending</TableCell>
+                  <TableCell>Best Seller</TableCell>
                   <TableCell align="right">Actions</TableCell>
                 </TableRow>
               </TableHead>
@@ -195,9 +188,15 @@ export default function ProductList() {
                       )}
                     </TableCell>
                     <TableCell>{p.name}</TableCell>
-                    <TableCell>₹{p.price}</TableCell>
-                    <TableCell>₹{p.discountPrice}</TableCell>
-                    <TableCell>{p.stock}</TableCell>
+                    <TableCell>
+                      <Tooltip title={p.variants?.map(v => v.name).join(', ') || 'No variants'}>
+                        <Chip
+                          label={`${p.variants?.length || 0} variant${p.variants?.length !== 1 ? 's' : ''}`}
+                          size="small"
+                          color="primary"
+                        />
+                      </Tooltip>
+                    </TableCell>
                     <TableCell>{p.categoryName || p.categoryId}</TableCell>
                     <TableCell>{p.subCategoryName || p.subCategoryId}</TableCell>
                     <TableCell>{p.storeName || p.storeId}</TableCell>
@@ -215,6 +214,13 @@ export default function ProductList() {
                         size="small"
                       />
                     </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={p.bestSeller ? 'Yes' : 'No'}
+                        color={p.bestSeller ? 'secondary' : 'default'}
+                        size="small"
+                      />
+                    </TableCell>
                     <TableCell align="right">
                       <IconButton
                         color="primary"
@@ -226,7 +232,14 @@ export default function ProductList() {
                       >
                         <Edit />
                       </IconButton>
-                      <IconButton color="error" onClick={() => handleDelete(p.id)} size="small">
+                      <IconButton
+                        color="error"
+                        onClick={() => {
+                          setProductToDelete(p.id);
+                          setDeleteConfirmOpen(true);
+                        }}
+                        size="small"
+                      >
                         <Delete />
                       </IconButton>
                     </TableCell>
@@ -270,6 +283,18 @@ export default function ProductList() {
           />
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        title="Delete Product"
+        message="Are you sure you want to delete this product? This will also delete all its variants and cannot be undone."
+        confirmLabel="Delete"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => {
+          setDeleteConfirmOpen(false);
+          setProductToDelete(null);
+        }}
+      />
     </div>
   );
 }

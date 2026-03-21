@@ -61,7 +61,7 @@ const RegisterPage: React.FC = () => {
                 </Fade>
               )}
 
-              <Box component="form" onSubmit={handleSubmit} className={styles.form}>
+              <Box component="form" onSubmit={handleSubmit} className={styles.form} autoComplete="off">
                 <Box className={styles.fieldWrapper}>
                   <Typography className={styles.label}>Email</Typography>
                   <TextField
@@ -70,7 +70,7 @@ const RegisterPage: React.FC = () => {
                     type="email"
                     value={formData.email}
                     onChange={handleChange}
-                    placeholder="Enter your email"
+                    autoComplete="off"
                     className={styles.inputField}
                     required
                   />
@@ -84,7 +84,7 @@ const RegisterPage: React.FC = () => {
                     type="password"
                     value={formData.password}
                     onChange={handleChange}
-                    placeholder="Create a password"
+                    autoComplete="new-password"
                     className={styles.inputField}
                     required
                   />

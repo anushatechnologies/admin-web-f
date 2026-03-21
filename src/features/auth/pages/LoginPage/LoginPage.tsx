@@ -15,7 +15,6 @@ import { LoginIllustration } from '@features/auth/components/LoginIllustration';
 import OTPVerification from '@features/auth/components/OTPVerification/OTPVerification';
 import { useNavigate } from 'react-router-dom'; // ✅ NEEDED FOR NAVIGATION
 import styles from './LoginPage.module.scss';
-import { LOGIN_CONTENT } from '@utils/uiContent';
 import { useLoginLogic } from '@features/auth/utils/useLoginLogic';
 
 const LoginPage: React.FC = () => {
@@ -28,7 +27,6 @@ const LoginPage: React.FC = () => {
     showPassword,
     isLoginLoading,
     verifyOtpLoading,
-    isPasswordExpired,
     onchangeHandler,
     handleBackToLogin,
     handleLogin,
@@ -80,7 +78,7 @@ const LoginPage: React.FC = () => {
                     </Fade>
                   )}
 
-                  <Box component="form" onSubmit={handleLogin}>
+                  <Box component="form" onSubmit={handleLogin} autoComplete="off">
                     {/* EMAIL */}
                     <Box className={styles.fieldWrapper}>
                       <Typography className={styles.label}>Email id</Typography>
@@ -90,7 +88,7 @@ const LoginPage: React.FC = () => {
                         type="email"
                         value={loginData.email}
                         onChange={onchangeHandler}
-                        placeholder="Enter your email here"
+                        autoComplete="off"
                         className={styles.inputField}
                       />
                     </Box>
@@ -104,7 +102,7 @@ const LoginPage: React.FC = () => {
                         type={showPassword ? 'text' : 'password'}
                         value={loginData.password}
                         onChange={onchangeHandler}
-                        placeholder="Enter your password here"
+                        autoComplete="new-password"
                         className={styles.inputField}
                         InputProps={{
                           endAdornment: (
@@ -143,7 +141,7 @@ const LoginPage: React.FC = () => {
                           '&:hover': { textDecoration: 'underline' },
                         }}
                       >
-                        {LOGIN_CONTENT.BUTTON_FORGOT_PASSWORD}
+                        Forgot Password?
                       </Typography>
                     </Box>
 

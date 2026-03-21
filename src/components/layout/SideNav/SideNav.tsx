@@ -111,7 +111,9 @@ const SideNav: React.FC = () => {
             )}
 
             {/* Links */}
-            {group.links.map(({ path, name, Icon }) => {
+            {group.links
+              .filter((link) => !link.roles || (user?.role && link.roles.includes(user.role)))
+              .map(({ path, name, Icon }) => {
               const isActive = location.pathname === path;
               const isHovered = hoveredItem === name;
 

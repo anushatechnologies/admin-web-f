@@ -31,6 +31,23 @@ const Settings = lazy(() => import('@features/settings/pages/settings'));
 const Users = lazy(() => import('@features/users/pages/users'));
 const Logs = lazy(() => import('@features/logs/pages/logs'));
 
+// Delivery & Payouts (Part 3)
+const DeliveryDashboard = lazy(() => import('@features/delivery/pages/DeliveryDashboard'));
+const DeliveryPersonList = lazy(() => import('@features/delivery/pages/DeliveryPersonList'));
+const DeliveryPersonDetail = lazy(() => import('@features/delivery/pages/DeliveryPersonDetail'));
+const DocumentReview = lazy(() => import('@features/delivery/pages/DocumentReview'));
+const PayoutList = lazy(() => import('@features/payouts/pages/PayoutList'));
+
+// Marketing
+const BannersList = lazy(() => import('@features/banners/pages/BannersList'));
+
+// Orders
+const AdminOrderDashboard = lazy(() => import('@features/orders/pages/AdminOrderDashboard'));
+const OrderDetail = lazy(() => import('@features/orders/pages/OrderDetail'));
+const MyOrders = lazy(() => import('@features/orders/pages/MyOrders'));
+const CustomerOrderTracking = lazy(() => import('@features/orders/pages/CustomerOrderTracking'));
+
+
 const Loader: React.FC = () => (
   <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
     Loading...
@@ -67,12 +84,26 @@ const AppRouter: React.FC = () => {
               <Route path="/subcategories" element={<SubCategoryList />} />
               <Route path="/subcategories/:categoryId" element={<SubCategoryList />} />
               <Route path="/products" element={<ProductList />} />
-              <Route path="/delivery" element={<Delevery />} />
-              <Route path="/delivery_setup" element={<DeleverySetup />} />
-              <Route path="/discount" element={<Discount />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/users" element={<Users />} />
               <Route path="/logs" element={<Logs />} />
+
+              {/* Delivery & Payouts */}
+              <Route path="/delivery/dashboard" element={<DeliveryDashboard />} />
+              <Route path="/delivery/personnel" element={<DeliveryPersonList />} />
+              <Route path="/admin/delivery/personnel/:id" element={<DeliveryPersonDetail />} />
+              <Route path="/delivery/documents" element={<DocumentReview />} />
+              <Route path="/admin/payouts" element={<PayoutList />} />
+
+              {/* Orders */}
+              <Route path="/admin/orders" element={<AdminOrderDashboard />} />
+              <Route path="/admin/orders/:orderId" element={<OrderDetail />} />
+              <Route path="/my-orders" element={<MyOrders />} />
+              <Route path="/orders/:orderId" element={<OrderDetail />} />
+              <Route path="/orders/:orderId/tracking" element={<CustomerOrderTracking />} />
+
+              {/* Marketing */}
+              <Route path="/marketing/banners" element={<BannersList />} />
             </Route>
           </Route>
 

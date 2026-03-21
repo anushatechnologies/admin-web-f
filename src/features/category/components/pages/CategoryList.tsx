@@ -1,15 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  fetchCategories,
-  searchCategories,
-  createCategory,
-  updateCategory,
-  deleteCategory,
+  useGetCategoriesQuery,
+  useSearchCategoriesQuery,
+  useCreateCategoryMutation,
+  useUpdateCategoryMutation,
+  useDeleteCategoryMutation,
+  useHardDeleteCategoryMutation,
   Category,
   CategoryRequest,
 } from '../api/categoryApi';
-import { hardDeleteCategory } from '../api/categoryApi';
 import CategoryForm from './CategoryForm';
+import ConfirmDialog from '../../../../components/ConfirmDialog';
 import debounce from 'lodash/debounce';
 import toast from 'react-hot-toast';
 import {
@@ -38,67 +39,55 @@ import { Add, Edit, Delete, Search, ImageNotSupported } from '@mui/icons-materia
 const ITEMS_PER_PAGE = 5;
 
 export default function CategoryList() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchKeyword, setSearchKeyword] = useState('');
+  const [confirmId, setConfirmId] = useState<number | null>(null);
 
-  const loadCategories = async (keyword = '') => {
-    setLoading(true);
-    try {
-      const data = keyword.trim() ? await searchCategories(keyword) : await fetchCategories();
-      setCategories(data);
-      setCurrentPage(1);
-    } catch (error: any) {
-      toast.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const debouncedSearch = useCallback(
-    debounce((keyword: string) => {
-      loadCategories(keyword);
-    }, 500),
-    [],
-  );
-
+  const [debouncedSearch, setDebouncedSearch] = useState(searchKeyword);
   useEffect(() => {
-    debouncedSearch(searchKeyword);
-    return () => debouncedSearch.cancel();
-  }, [searchKeyword, debouncedSearch]);
+    const timer = setTimeout(() => setDebouncedSearch(searchKeyword), 500);
+    return () => clearTimeout(timer);
+  }, [searchKeyword]);
 
-  useEffect(() => {
-    loadCategories();
-  }, []);
+  // Using RTK Query hooks
+  const { data: allCategories, isLoading: categoriesLoading } = useGetCategoriesQuery(undefined, {
+    skip: debouncedSearch.trim().length > 0,
+  });
+  const { data: searchedCategories, isLoading: searchLoading } = useSearchCategoriesQuery(debouncedSearch, {
+    skip: debouncedSearch.trim().length === 0,
+  });
+
+  const [createCategory] = useCreateCategoryMutation();
+  const [updateCategory] = useUpdateCategoryMutation();
+  const [hardDeleteCategory] = useHardDeleteCategoryMutation();
+
+  const loading = categoriesLoading || searchLoading;
+  const categories = debouncedSearch.trim().length > 0 ? (searchedCategories || []) : (allCategories || []);
 
   const handleSave = async (data: CategoryRequest, imageFile?: File) => {
     try {
       if (editingCategory) {
-        await updateCategory(editingCategory.id, data, imageFile);
+        await updateCategory({ id: editingCategory.id, category: data, image: imageFile }).unwrap();
         toast.success('Category updated successfully');
       } else {
-        await createCategory(data, imageFile);
+        await createCategory({ category: data, image: imageFile }).unwrap();
         toast.success('Category created successfully');
       }
-      await loadCategories(searchKeyword);
       setShowModal(false);
       setEditingCategory(null);
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(error.data?.message || 'Failed to save category');
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to permanently delete this category?')) return;
     try {
-      await hardDeleteCategory(id); // <-- use hard delete
+      await hardDeleteCategory(id).unwrap();
       toast.success('Category deleted permanently');
-      await loadCategories(searchKeyword);
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(error.data?.message || 'Failed to delete category');
     }
   };
 
@@ -170,7 +159,7 @@ export default function CategoryList() {
         <>
           <TableContainer component={Paper} elevation={3}>
             <Table>
-              <TableHead sx={{ bgcolor: 'grey.100' }}>
+              <TableHead>
                 <TableRow>
                   <TableCell>Image</TableCell>
                   <TableCell>Name</TableCell>
@@ -211,7 +200,7 @@ export default function CategoryList() {
                       <IconButton color="primary" onClick={() => handleEdit(cat)} size="small">
                         <Edit />
                       </IconButton>
-                      <IconButton color="error" onClick={() => handleDelete(cat.id)} size="small">
+                      <IconButton color="error" onClick={() => setConfirmId(cat.id)} size="small">
                         <Delete />
                       </IconButton>
                     </TableCell>
@@ -255,6 +244,17 @@ export default function CategoryList() {
           />
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={confirmId !== null}
+        title="Delete Category"
+        message="Are you sure you want to permanently delete this category?"
+        onConfirm={() => {
+          if (confirmId !== null) handleDelete(confirmId);
+          setConfirmId(null);
+        }}
+        onCancel={() => setConfirmId(null)}
+      />
     </div>
   );
 }

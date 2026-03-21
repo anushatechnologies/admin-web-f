@@ -11,17 +11,21 @@ import {
   Tab,
   Grid,
   Divider,
+  IconButton,
+  CircularProgress,
 } from '@mui/material';
+import ReusableTable from '../../../components/common/ReusableTable';
+import { 
+  useGetDashboardSummaryQuery,
+  useGetActiveUsersQuery,
+  useGetOrderAnalyticsQuery, 
+  useGetRecentOrdersQuery 
+} from '../api/dashboardApi';
+import { useNavigate } from 'react-router-dom';
+import dayjs from 'dayjs';
+import { Visibility } from '@mui/icons-material';
 
-type OrderStatus =
-  | 'Pending'
-  | 'Confirmed'
-  | 'Packaging'
-  | 'Out for Delivery'
-  | 'Delivered'
-  | 'Canceled'
-  | 'Returned'
-  | 'Failed';
+type OrderStatus = string;
 
 interface Order {
   id: string;
@@ -31,37 +35,21 @@ interface Order {
   status: OrderStatus;
 }
 
-const initialOrders: Order[] = [
-  {
-    id: 'ORD-001',
-    customer: 'Rahul Sharma',
-    date: '2026-02-18',
-    amount: 2499,
-    status: 'Delivered',
-  },
-  {
-    id: 'ORD-002',
-    customer: 'Priya Patel',
-    date: '2026-02-18',
-    amount: 1899,
-    status: 'Out for Delivery',
-  },
-  { id: 'ORD-003', customer: 'Amit Kumar', date: '2026-02-18', amount: 3250, status: 'Packaging' },
-  { id: 'ORD-004', customer: 'Sneha Reddy', date: '2026-02-18', amount: 599, status: 'Pending' },
-];
+// initialOrders removed, using API data
 
 const currency = (v: number) => `₹${v.toLocaleString()}`;
 
-const statusColor = (status: OrderStatus) => {
-  switch (status) {
-    case 'Delivered':
+const statusColor = (status: string) => {
+  switch (status?.toLowerCase()) {
+    case 'delivered':
       return 'success';
-    case 'Canceled':
-    case 'Failed':
+    case 'canceled':
+    case 'failed':
       return 'error';
-    case 'Pending':
+    case 'pending':
       return 'warning';
-    case 'Out for Delivery':
+    case 'out for delivery':
+    case 'shipped':
       return 'info';
     default:
       return 'default';
@@ -69,31 +57,28 @@ const statusColor = (status: OrderStatus) => {
 };
 
 export default function AdminDashboard() {
-  const [orders] = useState<Order[]>(initialOrders);
-  const [activeUsers, setActiveUsers] = useState(3);
+  const navigate = useNavigate();
   const [tab, setTab] = useState(0);
 
-  useEffect(() => {
-    const i = setInterval(() => {
-      setActiveUsers(Math.floor(Math.random() * 10));
-    }, 4000);
-    return () => clearInterval(i);
-  }, []);
+  // Map tab index to period string
+  const periods = ['today', 'month', 'previous'];
+  const currentPeriod = periods[tab];
 
-  const analytics = useMemo(() => {
-    const map: Record<OrderStatus, number> = {
-      Pending: 0,
-      Confirmed: 0,
-      Packaging: 0,
-      'Out for Delivery': 0,
-      Delivered: 0,
-      Canceled: 0,
-      Returned: 0,
-      Failed: 0,
-    };
-    orders.forEach((o) => map[o.status]++);
-    return map;
-  }, [orders]);
+  const { data: summaryData, isLoading: isSummaryLoading } = useGetDashboardSummaryQuery();
+  const { data: activeUsersData, isLoading: isActiveUsersLoading } = useGetActiveUsersQuery();
+  const { data: analyticsData, isLoading: isAnalyticsLoading } = useGetOrderAnalyticsQuery(currentPeriod);
+  const { data: recentOrders, isLoading: isOrdersLoading } = useGetRecentOrdersQuery();
+
+  const isStatsLoading = isSummaryLoading || isActiveUsersLoading;
+
+  const analytics = analyticsData || {
+    pending: 0,
+    confirmed: 0,
+    processing: 0,
+    shipped: 0,
+    delivered: 0,
+    cancelled: 0,
+  };
 
   return (
     <Box sx={{ p: 4, minHeight: '100vh' }}>
@@ -104,17 +89,17 @@ export default function AdminDashboard() {
 
       {/* Stats Section */}
       <Grid container spacing={4} mb={4}>
-        <Grid item xs={12} md={12}>
-          <StatCard title="Total Orders" value={orders.length} />
+        <Grid size={{ xs: 12, md: 3 }}>
+          <StatCard title="Total Orders" value={summaryData?.totalOrders || 0} loading={isStatsLoading} />
         </Grid>
-        <Grid item xs={12} md={12}>
-          <StatCard title="Active Users" value={activeUsers} live />
+        <Grid size={{ xs: 12, md: 3 }}>
+          <StatCard title="Active Users" value={activeUsersData?.count || summaryData?.activeUsers || 0} live loading={isStatsLoading} />
         </Grid>
-        <Grid item xs={12} md={12}>
-          <StatCard title="Revenue" value={125000} money />
+        <Grid size={{ xs: 12, md: 3 }}>
+          <StatCard title="Today's Revenue" value={summaryData?.todayRevenue || 0} money loading={isStatsLoading} />
         </Grid>
-        <Grid item xs={12} md={12}>
-          <StatCard title="New Customers" value={8} />
+        <Grid size={{ xs: 12, md: 3 }}>
+          <StatCard title="New Customers" value={summaryData?.newCustomers || 0} loading={isStatsLoading} />
         </Grid>
       </Grid>
 
@@ -134,11 +119,15 @@ export default function AdminDashboard() {
         <Divider />
         <CardContent>
           <Grid container spacing={2}>
-            {Object.entries(analytics).map(([k, v]) => (
-              <Grid item xs={6} md={3} key={k}>
-                <AnalyticsCard label={k} value={v} />
-              </Grid>
-            ))}
+            {isAnalyticsLoading ? (
+                <Box display="flex" justifyContent="center" width="100%" p={4}><CircularProgress /></Box>
+            ) : (
+                Object.entries(analytics).map(([k, v]) => (
+                <Grid size={{ xs: 6, md: 3 }} key={k}>
+                    <AnalyticsCard label={k.toUpperCase()} value={v} />
+                </Grid>
+                ))
+            )}
           </Grid>
         </CardContent>
       </Card>
@@ -148,35 +137,44 @@ export default function AdminDashboard() {
         <CardHeader
           title="Recent Orders"
           titleTypographyProps={{ fontWeight: 600 }}
-          action={<Button variant="contained">View All</Button>}
+          action={<Button variant="contained" onClick={() => navigate('/admin/orders')}>View All</Button>}
         />
         <Divider />
         <CardContent>
           <Box sx={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ background: 'var(--card-bg)' }}>
-                  <th style={thStyle}>Order ID</th>
-                  <th style={thStyle}>Customer</th>
-                  <th style={thStyle}>Date</th>
-                  <th style={thStyle}>Amount</th>
-                  <th style={thStyle}>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.map((o) => (
-                  <tr key={o.id} style={{ borderBottom: '1px solid #eee' }}>
-                    <td style={tdStyle}>#{o.id}</td>
-                    <td style={tdStyle}>{o.customer}</td>
-                    <td style={tdStyle}>{o.date}</td>
-                    <td style={tdStyle}>{currency(o.amount)}</td>
-                    <td style={tdStyle}>
-                      <Chip label={o.status} color={statusColor(o.status)} size="small" />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+<ReusableTable
+              columns={[
+                { header: 'Order ID', key: 'orderNumber', render: (o: any) => `#${o.orderNumber}` },
+                { header: 'Customer', key: 'customerName' },
+                { header: 'Date', key: 'placedAt', render: (o: any) => dayjs(o.placedAt).format('DD MMM, hh:mm A') },
+                { header: 'Amount', key: 'grandTotal', render: (o: any) => currency(o.grandTotal) },
+                {
+                  header: 'Status',
+                  key: 'orderStatus',
+                  render: (o: any) => (
+                    <Chip label={o.orderStatus?.toUpperCase()} color={statusColor(o.orderStatus)} size="small" />
+                  ),
+                },
+                {
+                    header: 'Actions',
+                    key: 'actions',
+                    render: (o: any) => (
+                        <IconButton 
+                            color="info" 
+                            size="small" 
+                            onClick={() => navigate(`/admin/orders/${o.id}`)}
+                        >
+                            <Visibility fontSize="small" />
+                        </IconButton>
+                    )
+                }
+              ]}
+              data={recentOrders || []}
+              loading={isOrdersLoading}
+              currentPage={1}
+              totalPages={1}
+              onPageChange={() => {}}
+            />
           </Box>
         </CardContent>
       </Card>
@@ -191,11 +189,13 @@ function StatCard({
   value,
   live = false,
   money = false,
+  loading = false,
 }: {
   title: string;
   value: number;
   live?: boolean;
   money?: boolean;
+  loading?: boolean;
 }) {
   return (
     <Card sx={{ borderRadius: 3, boxShadow: 2 }}>
@@ -204,9 +204,13 @@ function StatCard({
           {title}
         </Typography>
         <Box display="flex" alignItems="center" justifyContent="space-between" mt={1}>
-          <Typography variant="h5" fontWeight={700}>
-            {money ? `₹${value.toLocaleString()}` : value}
-          </Typography>
+          {loading ? (
+              <CircularProgress size={20} />
+          ) : (
+            <Typography variant="h5" fontWeight={700}>
+                {money ? `₹${value.toLocaleString()}` : value}
+            </Typography>
+          )}
           {live && (
             <Typography variant="caption" color="success.main">
               ● live

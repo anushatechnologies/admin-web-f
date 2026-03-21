@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { Search, Plus, Pencil, Trash2, X, Eye } from 'lucide-react';
+import ReusableTable from '../../../components/common/ReusableTable';
+import ConfirmDialog from '../../../components/ConfirmDialog';
 
 type DiscountType = 'Amount' | 'Percent';
 
@@ -44,6 +46,7 @@ export default function DiscountPage() {
   const [error, setError] = useState('');
   const [productInput, setProductInput] = useState('');
   const [showProductDropdown, setShowProductDropdown] = useState(false);
+  const [confirmId, setConfirmId] = useState<number | null>(null);
 
   const emptyForm: Discount = {
     id: 0,
@@ -135,7 +138,6 @@ export default function DiscountPage() {
   };
 
   const remove = (id: number) => {
-    if (!confirm('Delete this discount?')) return;
     setDiscounts((p) => p.filter((d) => d.id !== id));
   };
 
@@ -177,57 +179,61 @@ export default function DiscountPage() {
           </div>
         </div>
 
-        <table className="w-full text-sm">
-          <thead>
-            <tr>
-              <th className="p-3 text-left">SL</th>
-              <th className="text-left">Title</th>
-              <th>Type</th>
-              <th>Category</th>
-              <th>Amount</th>
-              <th>Status</th>
-              <th>Media</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((d, i) => (
-              <tr key={d.id} className="border-t hover:bg-gray-50">
-                <td className="p-3">{i + 1}</td>
-                <td>{d.title}</td>
-                <td>{d.discountType}</td>
-                <td>{d.category}</td>
-                <td>{d.amount}</td>
-                <td>
-                  <button
-                    onClick={() => toggleStatus(d.id)}
-                    className={`px-3 py-1 rounded-full text-white text-xs ${
-                      d.status ? 'bg-green-600' : 'bg-gray-400'
-                    }`}
-                  >
-                    {d.status ? 'Active' : 'Inactive'}
-                  </button>
-                </td>
-                <td>
-                  {d.images[0] && (
-                    <img src={d.images[0]} className="w-10 h-10 object-cover rounded" />
-                  )}
-                </td>
-                <td className="flex gap-2">
+<ReusableTable
+          columns={[
+            { header: 'SL', key: 'sl', render: (_: Discount, idx?: number) => (idx ?? 0) + 1 },
+            { header: 'Title', key: 'title' },
+            { header: 'Type', key: 'discountType' },
+            { header: 'Category', key: 'category' },
+            { header: 'Amount', key: 'amount' },
+            {
+              header: 'Status',
+              key: 'status',
+              render: (d: Discount) => (
+                <button
+                  onClick={() => toggleStatus(d.id)}
+                  className={`px-3 py-1 rounded-full text-white text-xs ${
+                    d.status ? 'bg-green-600' : 'bg-gray-400'
+                  }`}
+                >
+                  {d.status ? 'Active' : 'Inactive'}
+                </button>
+              ),
+            },
+            {
+              header: 'Media',
+              key: 'images',
+              render: (d: Discount) =>
+                d.images[0] ? (
+                  <img src={d.images[0]} className="w-10 h-10 object-cover rounded" />
+                ) : (
+                  '-'
+                ),
+            },
+            {
+              header: 'Action',
+              key: 'action',
+              render: (d: Discount) => (
+                <div className="flex gap-2">
                   <button onClick={() => startEdit(d)}>
                     <Pencil size={16} />
                   </button>
-                  <button onClick={() => remove(d.id)}>
+                  <button onClick={() => setConfirmId(d.id)}>
                     <Trash2 size={16} />
                   </button>
                   <button onClick={() => setViewer(d)}>
                     <Eye size={16} />
                   </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </div>
+              ),
+            },
+          ]}
+          data={filtered}
+          loading={false}
+          currentPage={1}
+          totalPages={1}
+          onPageChange={() => {}}
+        />
       </div>
 
       {/* FORM MODAL */}
@@ -287,6 +293,17 @@ export default function DiscountPage() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmId !== null}
+        title="Delete Discount"
+        message="Are you sure you want to delete this discount?"
+        onConfirm={() => {
+          if (confirmId !== null) remove(confirmId);
+          setConfirmId(null);
+        }}
+        onCancel={() => setConfirmId(null)}
+      />
     </div>
   );
 }

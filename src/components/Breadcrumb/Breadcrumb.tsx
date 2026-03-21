@@ -22,7 +22,12 @@ const Breadcrumb: React.FC = () => {
       {/* Dashboard */}
       <Link
         to="/"
-        style={{ textDecoration: 'none', color: '#1976d2', fontWeight: 500, fontSize: '16px' }}
+        style={{
+          textDecoration: 'none',
+          color: 'var(--highlight-color)',
+          fontWeight: 500,
+          fontSize: '16px',
+        }}
       >
         Dashboard
       </Link>
@@ -34,10 +39,16 @@ const Breadcrumb: React.FC = () => {
 
         return (
           <span key={name} style={{ display: 'flex', alignItems: 'center' }}>
-            <NavigateNextIcon style={{ fontSize: '18px', color: '#999', margin: '0 4px' }} />
+            <NavigateNextIcon
+              style={{ fontSize: '18px', color: 'var(--text-color)', opacity: 0.5, margin: '0 4px' }}
+            />
             <Link
               to={routeTo}
-              style={{ textDecoration: 'none', color: '#1976d2', textTransform: 'capitalize' }}
+              style={{
+                textDecoration: 'none',
+                color: 'var(--highlight-color)',
+                textTransform: 'capitalize',
+              }}
             >
               {displayName}
             </Link>
@@ -47,9 +58,13 @@ const Breadcrumb: React.FC = () => {
 
       {appId && orgId && (
         <span style={{ display: 'flex', alignItems: 'center' }}>
-          <NavigateNextIcon style={{ fontSize: '18px', color: '#999', margin: '0 4px' }} />
+          <NavigateNextIcon
+            style={{ fontSize: '18px', color: 'var(--text-color)', opacity: 0.5, margin: '0 4px' }}
+          />
 
-          <span style={{ color: '#555', fontWeight: 500 }}>Loan Summary (App ID: {appId})</span>
+          <span style={{ color: 'var(--text-color)', fontWeight: 500 }}>
+            Loan Summary (App ID: {appId})
+          </span>
         </span>
       )}
     </nav>

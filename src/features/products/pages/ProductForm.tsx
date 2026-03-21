@@ -1,12 +1,4 @@
 import { useState, useEffect } from 'react';
-import { fetchStores, Store } from '../../store_type/api/storeapi';
-import { fetchCategories, Category } from '../../category/components/api/categoryApi';
-import {
-  fetchSubCategoriesByCategory,
-  SubCategory,
-} from '../../category/components/api/subCategoryApi';
-import { ProductRequest } from '../api/productApi';
-import toast from 'react-hot-toast';
 import {
   TextField,
   Checkbox,
@@ -20,8 +12,15 @@ import {
   MenuItem,
   Paper,
   IconButton,
+  Typography,
 } from '@mui/material';
 import { Close } from '@mui/icons-material';
+import { useGetStoresQuery } from '../../store/api/storeApi';
+import { useGetCategoriesQuery } from '../../category/components/api/categoryApi';
+import { useGetSubCategoriesByCategoryQuery } from '../../category/components/api/subCategoryApi';
+import { ProductRequest, VariantRequest } from '../api/productApi';
+import VariantForm from '../components/VariantForm';
+import toast from 'react-hot-toast';
 
 type Props = {
   initialData?: any;
@@ -32,45 +31,64 @@ type Props = {
 export default function ProductForm({ initialData, onSave, onClose }: Props) {
   const [name, setName] = useState(initialData?.name || '');
   const [description, setDescription] = useState(initialData?.description || '');
-  const [price, setPrice] = useState(initialData?.price || 0);
-  const [discountPrice, setDiscountPrice] = useState(initialData?.discountPrice || 0);
-  const [stock, setStock] = useState(initialData?.stock || 0);
   const [isActive, setIsActive] = useState(initialData?.isActive ?? true);
   const [isTrending, setIsTrending] = useState(initialData?.isTrending ?? false);
+  
+  const [bestSeller, setBestSeller] = useState(initialData?.bestSeller ?? false);
   const [displayOrder, setDisplayOrder] = useState(initialData?.displayOrder || 0);
-  const [categoryId, setCategoryId] = useState<number>(initialData?.category?.id || 0);
-  const [subCategoryId, setSubCategoryId] = useState<number>(initialData?.subCategory?.id || 0);
-  const [storeId, setStoreId] = useState<number>(initialData?.store?.id || 0);
+  const [categoryId, setCategoryId] = useState<number>(initialData?.categoryId || 0);
+  const [subCategoryId, setSubCategoryId] = useState<number>(initialData?.subCategoryId || 0);
+  const [storeId, setStoreId] = useState<number>(initialData?.storeId || 0);
+  const [variants, setVariants] = useState<VariantRequest[]>(() => {
+    if (initialData?.variants) {
+      return initialData.variants.map((v: any) => ({
+        name: v.name,
+        sku: v.sku,
+        price: v.price,
+        discountPrice: v.discountPrice,
+        stock: v.stock,
+        isActive: v.isActive,
+        displayOrder: v.displayOrder,
+      }));
+    }
+    return [
+      {
+        name: '',
+        sku: '',
+        price: 0,
+        discountPrice: undefined,
+        stock: 0,
+        isActive: true,
+        displayOrder: 1,
+      },
+    ];
+  });
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | undefined>(initialData?.imageUrl);
 
-  const [stores, setStores] = useState<Store[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
-  const [loadingSubs, setLoadingSubs] = useState(false);
+  // RTK Query hooks for lookups
+  const { data: storesData } = useGetStoresQuery({});
+  const { data: categoriesData } = useGetCategoriesQuery();
+  const { data: subCategoriesData, isFetching: loadingSubs } = useGetSubCategoriesByCategoryQuery(categoryId, {
+    skip: !categoryId,
+  });
+
+  const stores = Array.isArray(storesData) ? storesData : storesData?.content || [];
+  const categories = categoriesData || [];
+  const subCategories = subCategoriesData || [];
+
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    Promise.all([fetchStores(), fetchCategories()])
-      .then(([storesData, catsData]) => {
-        setStores(storesData.content || []);
-        setCategories(catsData);
-      })
-      .catch(console.error);
-  }, []);
-
-  useEffect(() => {
-    if (categoryId) {
-      setLoadingSubs(true);
-      fetchSubCategoriesByCategory(categoryId)
-        .then(setSubCategories)
-        .catch(console.error)
-        .finally(() => setLoadingSubs(false));
-    } else {
-      setSubCategories([]);
+    if (categoryId && subCategories.length > 0) {
+      if (initialData?.subCategoryId === subCategoryId) {
+        // Keep it
+      } else if (!subCategories.find((sc) => sc.id === subCategoryId)) {
+        setSubCategoryId(0);
+      }
     }
-    setSubCategoryId(0);
-  }, [categoryId]);
+  }, [categoryId, subCategories, subCategoryId, initialData]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -80,9 +98,11 @@ export default function ProductForm({ initialData, onSave, onClose }: Props) {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
 
+    // Validation
     if (!name.trim()) {
       toast.error('Product name is required');
       return;
@@ -95,6 +115,30 @@ export default function ProductForm({ initialData, onSave, onClose }: Props) {
       toast.error('Please select a subcategory');
       return;
     }
+    if (variants.length === 0) {
+      toast.error('At least one variant is required');
+      return;
+    }
+    for (let i = 0; i < variants.length; i++) {
+      const v = variants[i];
+      if (!v.name.trim()) {
+        toast.error(`Variant ${i + 1}: Name is required`);
+        return;
+      }
+      if (!v.sku.trim()) {
+        toast.error(`Variant ${i + 1}: SKU is required`);
+        return;
+      }
+      if (v.price <= 0) {
+        toast.error(`Variant ${i + 1}: Price must be greater than 0`);
+        return;
+      }
+      if (v.stock < 0) {
+        toast.error(`Variant ${i + 1}: Stock cannot be negative`);
+        return;
+      }
+    }
+
     if (!initialData?.id && !imageFile) {
       toast.error('Please select an image for the product');
       return;
@@ -103,18 +147,22 @@ export default function ProductForm({ initialData, onSave, onClose }: Props) {
     const productData: ProductRequest = {
       name: name.trim(),
       description: description.trim(),
-      price,
-      discountPrice,
-      stock,
       isActive,
       isTrending,
+      bestSeller,
       displayOrder,
       categoryId,
       subCategoryId,
       storeId: storeId || undefined,
+      variants,
     };
 
-    onSave(productData, imageFile || undefined);
+    setSubmitting(true);
+    try {
+      await onSave(productData, imageFile || undefined);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -136,56 +184,6 @@ export default function ProductForm({ initialData, onSave, onClose }: Props) {
           multiline
           rows={3}
         />
-        <Stack direction="row" spacing={2}>
-          <TextField
-            label="Price (₹) *"
-            type="number"
-            step="0.01"
-            value={price}
-            onChange={(e) => setPrice(Number(e.target.value))}
-            fullWidth
-          />
-          <TextField
-            label="Discount Price (₹)"
-            type="number"
-            step="0.01"
-            value={discountPrice}
-            onChange={(e) => setDiscountPrice(Number(e.target.value))}
-            fullWidth
-          />
-        </Stack>
-        <Stack direction="row" spacing={2}>
-          <TextField
-            label="Stock *"
-            type="number"
-            value={stock}
-            onChange={(e) => setStock(Number(e.target.value))}
-            fullWidth
-          />
-          <TextField
-            label="Display Order"
-            type="number"
-            value={displayOrder}
-            onChange={(e) => setDisplayOrder(Number(e.target.value))}
-            fullWidth
-          />
-        </Stack>
-
-        <FormControl fullWidth>
-          <InputLabel>Store (optional)</InputLabel>
-          <Select
-            value={storeId}
-            onChange={(e) => setStoreId(Number(e.target.value))}
-            label="Store (optional)"
-          >
-            <MenuItem value="">Select a store</MenuItem>
-            {stores.map((s) => (
-              <MenuItem key={s.id} value={s.id}>
-                {s.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
 
         <FormControl fullWidth>
           <InputLabel>Category *</InputLabel>
@@ -210,7 +208,9 @@ export default function ProductForm({ initialData, onSave, onClose }: Props) {
             onChange={(e) => setSubCategoryId(Number(e.target.value))}
             label="SubCategory *"
           >
-            <MenuItem value="">{loadingSubs ? 'Loading...' : 'Select a subcategory'}</MenuItem>
+            <MenuItem value="">
+              {loadingSubs ? 'Loading...' : 'Select a subcategory'}
+            </MenuItem>
             {subCategories.map((sc) => (
               <MenuItem key={sc.id} value={sc.id}>
                 {sc.name}
@@ -219,20 +219,48 @@ export default function ProductForm({ initialData, onSave, onClose }: Props) {
           </Select>
         </FormControl>
 
+        <FormControl fullWidth>
+          <InputLabel>Store</InputLabel>
+          <Select
+            value={storeId}
+            onChange={(e) => setStoreId(Number(e.target.value))}
+            label="Store (optional)"
+          >
+            <MenuItem value="">No store</MenuItem>
+            {stores.map((s) => (
+              <MenuItem key={s.id} value={s.id}>
+                {s.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <Stack direction="row" spacing={2}>
+          <TextField
+            label="Display Order"
+            type="number"
+            value={displayOrder}
+            onChange={(e) => setDisplayOrder(Number(e.target.value))}
+            fullWidth
+          />
+        </Stack>
+
         <Stack direction="row" spacing={4}>
           <FormControlLabel
-            control={
-              <Checkbox checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
-            }
+            control={<Checkbox checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />}
             label="Active"
           />
           <FormControlLabel
-            control={
-              <Checkbox checked={isTrending} onChange={(e) => setIsTrending(e.target.checked)} />
-            }
+            control={<Checkbox checked={bestSeller} onChange={(e) => setBestSeller(e.target.checked)} />}
+            label="Best Seller"
+          />
+          <FormControlLabel
+            control={<Checkbox checked={isTrending} onChange={(e) => setIsTrending(e.target.checked)} />}
             label="Trending"
           />
         </Stack>
+
+        <VariantForm variants={variants} onChange={setVariants} />
 
         <Paper variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
           <input
@@ -244,7 +272,7 @@ export default function ProductForm({ initialData, onSave, onClose }: Props) {
           />
           <label htmlFor="product-image">
             <Button variant="outlined" component="span">
-              {imagePreview ? 'Change image' : 'Click to upload image'}
+              {imagePreview ? 'Change image' : 'Click to upload product image'}
             </Button>
           </label>
           {imagePreview && (
@@ -277,8 +305,8 @@ export default function ProductForm({ initialData, onSave, onClose }: Props) {
 
         <Stack direction="row" justifyContent="flex-end" spacing={2}>
           <Button onClick={onClose}>Cancel</Button>
-          <Button type="submit" variant="contained">
-            {initialData?.id ? 'Update' : 'Save'}
+          <Button type="submit" variant="contained" disabled={submitting}>
+            {submitting ? 'Saving...' : initialData?.id ? 'Update' : 'Save'}
           </Button>
         </Stack>
       </Stack>
