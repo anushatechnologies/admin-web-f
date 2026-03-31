@@ -4,14 +4,20 @@ import {
   DialogContent, DialogActions, TextField, FormControlLabel, Switch
 } from '@mui/material';
 import ReusableTable from '../../../components/common/ReusableTable';
-import { useGetAdminBannersQuery, useCreateBannerMutation } from '../api/bannersApi';
+import { useGetAdminBannersQuery, useCreateBannerMutation, useToggleBannerStatusMutation, useDeleteBannerMutation } from '../api/bannersApi';
 import toast from 'react-hot-toast';
+import { IconButton, Tooltip } from '@mui/material';
+import { Delete as DeleteIcon } from '@mui/icons-material';
+import ConfirmDialog from '../../../components/ConfirmDialog';
 
 export default function BannersList() {
   const { data, isLoading, refetch } = useGetAdminBannersQuery();
   const [createBanner, { isLoading: isCreating }] = useCreateBannerMutation();
+  const [toggleBannerStatus] = useToggleBannerStatusMutation();
+  const [deleteBanner] = useDeleteBannerMutation();
   
   const [open, setOpen] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     isActive: true,
@@ -34,6 +40,16 @@ export default function BannersList() {
 
   const handleCreate = async () => {
     try {
+      const MAX_FILE_SIZE = 1048576; // 1MB
+      if (imageFile && imageFile.size > MAX_FILE_SIZE) {
+        toast.error('Image is too large! Maximum allowed size is 1MB.');
+        return;
+      }
+      if (videoFile && videoFile.size > MAX_FILE_SIZE) {
+        toast.error('Video is too large! Maximum allowed size is 1MB.');
+        return;
+      }
+
       await createBanner({
         banner: {
           name: formData.name,
@@ -92,6 +108,38 @@ export default function BannersList() {
                   color={row.isActive ? 'success' : 'default'}
                   size="small"
                 />
+              )
+            },
+            {
+              header: 'Actions',
+              key: 'actions',
+              render: (row: any) => (
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <Tooltip title={row.isActive ? 'Deactivate banner' : 'Activate banner'}>
+                    <Switch
+                      checked={!!row.isActive}
+                      onChange={async () => {
+                        try {
+                          await toggleBannerStatus({ id: row.id, isActive: !row.isActive }).unwrap();
+                          toast.success(`Banner ${row.isActive ? 'deactivated' : 'activated'} successfully`);
+                        } catch (err: any) {
+                          toast.error(err?.data?.message || 'Failed to update banner status');
+                        }
+                      }}
+                      color="success"
+                      size="small"
+                    />
+                  </Tooltip>
+                  <Tooltip title="Delete banner">
+                    <IconButton
+                      color="error"
+                      size="small"
+                      onClick={() => setDeleteConfirmId(row.id)}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
               )
             }
           ]}
@@ -164,6 +212,25 @@ export default function BannersList() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <ConfirmDialog
+        open={deleteConfirmId !== null}
+        title="Delete Banner"
+        message="Are you sure you want to delete this banner? This action cannot be undone."
+        confirmLabel="Delete"
+        onConfirm={async () => {
+          if (deleteConfirmId === null) return;
+          try {
+            await deleteBanner(deleteConfirmId).unwrap();
+            toast.success('Banner deleted successfully');
+          } catch (err: any) {
+            toast.error(err?.data?.message || 'Failed to delete banner');
+          } finally {
+            setDeleteConfirmId(null);
+          }
+        }}
+        onCancel={() => setDeleteConfirmId(null)}
+      />
     </Box>
   );
 }

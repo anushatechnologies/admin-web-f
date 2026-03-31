@@ -79,11 +79,14 @@ export const RouteLinks: RouteLinkGroup[] = [
   {
     section: 'Delivery',
     links: [
+      { name: 'Delivery', path: '/delivery', Icon: LocalShipping }, 
+      { name: 'Setup', path: '/delivery-setup', Icon: Settings },
       { name: 'Dashboard', path: '/delivery/dashboard', Icon: Dashboard },
       { name: 'Personnel', path: '/delivery/personnel', Icon: People },
       { name: 'Documents', path: '/delivery/documents', Icon: Description },
     ],
   },
+
 
   // ---------------- FINANCIALS ----------------
   {

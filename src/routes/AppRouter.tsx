@@ -24,8 +24,8 @@ const TermsConditions = lazy(() => import('@features/terms_conditions/pages/term
 const Notification = lazy(() => import('@features/notifications/pages/notifications'));
 const StoreType = lazy(() => import('@features/store_type/pages/Store_type'));
 const Store = lazy(() => import('@features/store/pages/store'));
-const Delevery = lazy(() => import('@features/delivery/pages/delevery'));
-const DeleverySetup = lazy(() => import('@features/delevery_setup/pages/delevery_setup'));
+const Delivery = lazy(() => import('@features/delivery/pages/delivery'));
+const DeliverySetup = lazy(() => import('@features/delevery_setup/pages/delevery_setup'));
 const Discount = lazy(() => import('@features/discount/pages/discounts'));
 const Settings = lazy(() => import('@features/settings/pages/settings'));
 const Users = lazy(() => import('@features/users/pages/users'));
@@ -89,11 +89,14 @@ const AppRouter: React.FC = () => {
               <Route path="/logs" element={<Logs />} />
 
               {/* Delivery & Payouts */}
+              <Route path="/delivery" element={<Delivery />} />
+              <Route path="/delivery-setup" element={<DeliverySetup />} />
               <Route path="/delivery/dashboard" element={<DeliveryDashboard />} />
               <Route path="/delivery/personnel" element={<DeliveryPersonList />} />
               <Route path="/admin/delivery/personnel/:id" element={<DeliveryPersonDetail />} />
               <Route path="/delivery/documents" element={<DocumentReview />} />
               <Route path="/admin/payouts" element={<PayoutList />} />
+
 
               {/* Orders */}
               <Route path="/admin/orders" element={<AdminOrderDashboard />} />

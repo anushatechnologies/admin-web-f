@@ -1,14 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   useGetAllSubCategoriesQuery,
   useGetSubCategoriesByCategoryQuery,
   useHardDeleteSubCategoryMutation,
 } from '../api/subCategoryApi';
-import { useGetCategoriesQuery, Category } from '../api/categoryApi';
+import { useGetCategoriesQuery } from '../api/categoryApi';
 import SubCategoryForm from './SubCategoryForm';
 import ConfirmDialog from '../../../../components/ConfirmDialog';
-import debounce from 'lodash/debounce';
 import toast from 'react-hot-toast';
 import {
   Table,
@@ -36,8 +35,16 @@ import {
   Box,
   Avatar,
   Link,
+  Tooltip,
 } from '@mui/material';
-import { Add, Edit, Delete, Search, Image, VideoFile } from '@mui/icons-material';
+import {
+  Add,
+  Edit,
+  Delete,
+  Search,
+  ImageNotSupported,
+  VideoFile,
+} from '@mui/icons-material';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -60,6 +67,7 @@ export default function SubCategoryList() {
   const { data: allSubCategories, isLoading: allLoading } = useGetAllSubCategoriesQuery(undefined, {
     skip: !!selectedCategoryId,
   });
+
   const { data: catSubCategories, isLoading: catLoading } = useGetSubCategoriesByCategoryQuery(selectedCategoryId, {
     skip: !selectedCategoryId,
   });
@@ -82,7 +90,7 @@ export default function SubCategoryList() {
     currentPage * ITEMS_PER_PAGE
   );
 
-  const handleSave = async () => {
+  const handleSave = () => {
     setShowModal(false);
     setEditingSub(null);
   };
@@ -91,12 +99,13 @@ export default function SubCategoryList() {
     try {
       await hardDeleteSubCategory(id).unwrap();
       toast.success('SubCategory deleted permanently');
-    } catch (error: any) {
-      toast.error(error.data?.message || 'Failed to delete subcategory');
+      setConfirmId(null);
+    } catch (err: any) {
+      toast.error(err.data?.message || 'Failed to delete subcategory');
     }
   };
 
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+  const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {
     setCurrentPage(value);
   };
 
@@ -106,47 +115,48 @@ export default function SubCategoryList() {
         <Typography variant="h4" fontWeight="bold">
           SubCategories
         </Typography>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <FormControl sx={{ minWidth: 200 }}>
-            <InputLabel>Category</InputLabel>
-            <Select
-              value={selectedCategoryId}
-              onChange={(e) => {
-                const catId = Number(e.target.value);
-                setSelectedCategoryId(catId);
-                navigate(catId ? `/subcategories/${catId}` : '/subcategories');
-              }}
-              label="Category"
-            >
-              <MenuItem value={0}>All Categories</MenuItem>
-              {categories.map((cat) => (
-                <MenuItem key={cat.id} value={cat.id}>
-                  {cat.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<Add />}
-            onClick={() => {
-              setEditingSub(null);
-              setShowModal(true);
-            }}
-            disabled={!selectedCategoryId}
-          >
-            Add SubCategory
-          </Button>
-        </Box>
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<Add />}
+          disabled={!selectedCategoryId}
+          onClick={() => {
+            setEditingSub(null);
+            setShowModal(true);
+          }}
+        >
+          Add SubCategory
+        </Button>
       </Box>
 
-      <div className="mb-4">
+      {/* Filters Row */}
+      <Box sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+        <FormControl sx={{ minWidth: 220 }}>
+          <InputLabel>Category</InputLabel>
+          <Select
+            value={selectedCategoryId}
+            onChange={(e) => {
+              const catId = Number(e.target.value);
+              setSelectedCategoryId(catId);
+              setCurrentPage(1);
+              navigate(catId ? `/subcategories/${catId}` : '/subcategories');
+            }}
+            label="Category"
+          >
+            <MenuItem value={0}>All Categories</MenuItem>
+            {categories.map((cat) => (
+              <MenuItem key={cat.id} value={cat.id}>
+                {cat.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
         <TextField
           variant="outlined"
-          placeholder="Filter subcategories..."
+          placeholder="Search subcategories by name or description..."
           value={searchKeyword}
-          onChange={(e) => setSearchKeyword(e.target.value)}
+          onChange={(e) => { setSearchKeyword(e.target.value); setCurrentPage(1); }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -156,7 +166,7 @@ export default function SubCategoryList() {
           }}
           sx={{ maxWidth: 400 }}
         />
-      </div>
+      </Box>
 
       {loading && (
         <div className="flex justify-center my-8">
@@ -166,7 +176,11 @@ export default function SubCategoryList() {
 
       {!loading && filteredSubCategories.length === 0 && (
         <Typography variant="body1" color="textSecondary" align="center" sx={{ my: 4 }}>
-          No subcategories found.
+          {searchKeyword
+            ? `No subcategories found for "${searchKeyword}".`
+            : selectedCategoryId
+            ? 'No subcategories in this category yet. Click "Add SubCategory" to create one.'
+            : 'Select a category to view or create subcategories.'}
         </Typography>
       )}
 
@@ -174,40 +188,66 @@ export default function SubCategoryList() {
         <>
           <TableContainer component={Paper} elevation={3}>
             <Table>
-              <TableHead sx={{ bgcolor: 'action.hover' }}>
+              <TableHead sx={{ bgcolor: 'var(--border-soft)' }}>
                 <TableRow>
                   <TableCell>Image</TableCell>
                   <TableCell>Name</TableCell>
                   <TableCell>Description</TableCell>
-                  <TableCell>Display Order</TableCell>
-                  <TableCell>Discount (%)</TableCell>
-                  <TableCell>Active</TableCell>
+                  <TableCell>Category</TableCell>
+                  <TableCell>Order</TableCell>
+                  <TableCell>Discount</TableCell>
+                  <TableCell>Video</TableCell>
+                  <TableCell>Status</TableCell>
                   <TableCell align="right">Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {currentData.map((sc) => (
                   <TableRow key={sc.id} hover>
-                    <TableCell sx={{ verticalAlign: 'middle' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        {sc.imageUrl ? (
-                          <Avatar src={sc.imageUrl} variant="rounded" sx={{ width: 50, height: 50 }} />
-                        ) : (
-                          <Avatar variant="rounded" sx={{ width: 50, height: 50 }}>
-                            <Image />
-                          </Avatar>
-                        )}
-                        {sc.videoUrl && (
-                          <Link href={sc.videoUrl} target="_blank" rel="noopener" title="View video">
-                            <VideoFile fontSize="small" color="action" />
-                          </Link>
-                        )}
-                      </Box>
+                    <TableCell>
+                      {sc.imageUrl ? (
+                        <Avatar
+                          src={sc.imageUrl}
+                          alt={sc.name}
+                          variant="rounded"
+                          sx={{ width: 48, height: 48 }}
+                        />
+                      ) : (
+                        <ImageNotSupported color="disabled" />
+                      )}
                     </TableCell>
-                    <TableCell>{sc.name}</TableCell>
-                    <TableCell>{sc.description}</TableCell>
+                    <TableCell>
+                      <Typography fontWeight={600}>{sc.name}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography
+                        variant="body2"
+                        color="textSecondary"
+                        sx={{ maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                      >
+                        {sc.description || '—'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>{sc.category?.name || sc.categoryId || '—'}</TableCell>
                     <TableCell>{sc.displayOrder}</TableCell>
-                    <TableCell>{sc.discount}</TableCell>
+                    <TableCell>
+                      {sc.discount > 0 ? (
+                        <Chip label={`${sc.discount}%`} size="small" color="success" />
+                      ) : (
+                        <Typography variant="body2" color="textSecondary">—</Typography>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {sc.videoUrl ? (
+                        <Tooltip title="View video">
+                          <Link href={sc.videoUrl} target="_blank" rel="noopener">
+                            <VideoFile color="action" />
+                          </Link>
+                        </Tooltip>
+                      ) : (
+                        <Typography variant="body2" color="textSecondary">—</Typography>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <Chip
                         label={sc.isActive ? 'Active' : 'Inactive'}
@@ -218,19 +258,19 @@ export default function SubCategoryList() {
                     <TableCell align="right">
                       <IconButton
                         color="primary"
+                        size="small"
                         onClick={() => {
                           setEditingSub(sc);
                           setShowModal(true);
                         }}
-                        size="small"
                       >
                         <Edit />
                       </IconButton>
-                        <IconButton
-                          color="error"
-                          onClick={() => setConfirmId(sc.id)}
-                          size="small"
-                        >
+                      <IconButton
+                        color="error"
+                        size="small"
+                        onClick={() => setConfirmId(sc.id)}
+                      >
                         <Delete />
                       </IconButton>
                     </TableCell>
@@ -253,6 +293,7 @@ export default function SubCategoryList() {
         </>
       )}
 
+      {/* Create/Edit Modal */}
       <Dialog
         open={showModal}
         onClose={() => {
@@ -276,14 +317,13 @@ export default function SubCategoryList() {
         </DialogContent>
       </Dialog>
 
+      {/* Delete Confirmation */}
       <ConfirmDialog
         open={confirmId !== null}
         title="Delete SubCategory"
-        message="Are you sure you want to permanently delete this subcategory?"
-        onConfirm={() => {
-          if (confirmId !== null) handleDelete(confirmId);
-          setConfirmId(null);
-        }}
+        message="Are you sure you want to permanently delete this subcategory? This action cannot be undone."
+        confirmLabel="Delete"
+        onConfirm={() => confirmId && handleDelete(confirmId)}
         onCancel={() => setConfirmId(null)}
       />
     </div>

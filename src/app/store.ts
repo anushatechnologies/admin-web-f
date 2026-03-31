@@ -6,12 +6,14 @@ import { FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist
 
 import authReducer from '@features/auth/authSlice';
 import { baseApi, baseApiWithAuth } from '@api/baseApi';
+import { authApi } from '@features/auth/api/authApi';
 import appReducer from '@app/app-slices/appSlice';
 
 const rootReducer = combineReducers({
   auth: authReducer,
   [baseApi.reducerPath]: baseApi.reducer,
   [baseApiWithAuth.reducerPath]: baseApiWithAuth.reducer,
+  [authApi.reducerPath]: authApi.reducer,
   app: appReducer,
 });
 
@@ -33,7 +35,8 @@ export const store = configureStore({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
-    }).concat(baseApi.middleware, baseApiWithAuth.middleware),
+    }).concat(baseApi.middleware, baseApiWithAuth.middleware, authApi.middleware),
+
   devTools: import.meta.env.MODE !== 'production',
 });
 

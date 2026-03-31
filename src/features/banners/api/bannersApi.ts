@@ -1,7 +1,5 @@
 import { baseApiWithAuth, baseApi } from '@api/baseApi';
 
-const HOST_URL = import.meta.env.VITE_API_BASE_URL?.replace(/\/api\/?$/, '') || '';
-
 export interface Banner {
   id?: number;
   name: string;
@@ -29,7 +27,7 @@ export const bannersApi = baseApiWithAuth.injectEndpoints({
         if (video) formData.append('video', video);
         
         return {
-          url: `${HOST_URL}/admin-panel/api/banners`,
+          url: '/admin-panel/api/banners',
           method: 'POST',
           body: formData,
         };
@@ -39,8 +37,27 @@ export const bannersApi = baseApiWithAuth.injectEndpoints({
     
     // Admin: Get All Banners 
     getAdminBanners: builder.query<any, void>({
-      query: () => `${HOST_URL}/admin-panel/api/banners`,
+      query: () => '/admin-panel/api/banners',
       providesTags: ['Banners' as any],
+    }),
+
+    // Admin: Toggle Banner Status
+    toggleBannerStatus: builder.mutation<any, { id: number; isActive: boolean }>({
+      query: ({ id, isActive }) => ({
+        url: `/admin-panel/api/banners/${id}/status`,
+        method: 'PUT',
+        body: { isActive },
+      }),
+      invalidatesTags: ['Banners' as any],
+    }),
+
+    // Admin: Delete Banner
+    deleteBanner: builder.mutation<any, number>({
+      query: (id) => ({
+        url: `/admin-panel/api/banners/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Banners' as any],
     }),
   }),
 });
@@ -51,7 +68,7 @@ export const customerBannersApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // Customer: Get Active Banners
     getCustomerBanners: builder.query<any, void>({
-      query: () => `${HOST_URL}/api/customer/banners`,
+      query: () => '/api/customer/banners',
       providesTags: ['Banners' as any],
     }),
   }),
@@ -60,6 +77,8 @@ export const customerBannersApi = baseApi.injectEndpoints({
 export const {
   useCreateBannerMutation,
   useGetAdminBannersQuery,
+  useToggleBannerStatusMutation,
+  useDeleteBannerMutation,
 } = bannersApi;
 
 export const {
