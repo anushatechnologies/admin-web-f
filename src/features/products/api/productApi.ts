@@ -43,11 +43,12 @@ export const productApi = baseApiWithAuth.injectEndpoints({
     }),
 
     // 5.3 Create Product
-    createProduct: builder.mutation<Product, { product: ProductRequest; image?: File }>({
-      query: ({ product, image }) => {
+    createProduct: builder.mutation<Product, { product: ProductRequest; image?: File; video?: File }>({
+      query: ({ product, image, video }) => {
         const formData = new FormData();
         formData.append('product', new Blob([JSON.stringify(product)], { type: 'application/json' }));
         if (image) formData.append('image', image);
+        if (video) formData.append('video', video);
         return {
           url: '/products',
           method: 'POST',
@@ -58,11 +59,12 @@ export const productApi = baseApiWithAuth.injectEndpoints({
     }),
 
     // 5.4 Update Product
-    updateProduct: builder.mutation<Product, { id: number; product: ProductRequest; image?: File }>({
-      query: ({ id, product, image }) => {
+    updateProduct: builder.mutation<Product, { id: number; product: ProductRequest; image?: File; video?: File }>({
+      query: ({ id, product, image, video }) => {
         const formData = new FormData();
         formData.append('product', new Blob([JSON.stringify(product)], { type: 'application/json' }));
         if (image) formData.append('image', image);
+        if (video) formData.append('video', video);
         return {
           url: `/products/${id}`,
           method: 'PUT',
@@ -71,6 +73,7 @@ export const productApi = baseApiWithAuth.injectEndpoints({
       },
       invalidatesTags: (result, error, { id }) => ['Product' as any, { type: 'Product' as any, id }],
     }),
+
 
     // 5.5 Delete Product
     deleteProduct: builder.mutation<void, number>({
@@ -109,6 +112,43 @@ export const productApi = baseApiWithAuth.injectEndpoints({
       }),
       providesTags: ['Product' as any],
     }),
+
+    // Gallery Images
+    addGalleryImage: builder.mutation<any, { productId: number; image: File; displayOrder: number }>({
+      query: ({ productId, image, displayOrder }) => {
+        const formData = new FormData();
+        formData.append('image', image);
+        formData.append('displayOrder', displayOrder.toString());
+        return {
+          url: `/products/${productId}/images`,
+          method: 'POST',
+          body: formData,
+        };
+      },
+      invalidatesTags: (result, error, { productId }) => [{ type: 'Product' as any, id: productId }],
+    }),
+
+    updateGalleryImage: builder.mutation<any, { imageId: number; image?: File; displayOrder?: number }>({
+      query: ({ imageId, image, displayOrder }) => {
+        const formData = new FormData();
+        if (image) formData.append('image', image);
+        if (displayOrder !== undefined) formData.append('displayOrder', displayOrder.toString());
+        return {
+          url: `/products/images/${imageId}`,
+          method: 'PUT',
+          body: formData,
+        };
+      },
+      invalidatesTags: ['Product' as any],
+    }),
+
+    deleteGalleryImage: builder.mutation<void, { imageId: number; productId: number }>({
+      query: ({ imageId }) => ({
+        url: `/products/images/${imageId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (result, error, { productId }) => [{ type: 'Product' as any, id: productId }],
+    }),
   }),
 });
 
@@ -121,4 +161,8 @@ export const {
   useSearchProductsQuery,
   useGetTrendingProductsQuery,
   useFilterProductsQuery,
+  useAddGalleryImageMutation,
+  useUpdateGalleryImageMutation,
+  useDeleteGalleryImageMutation,
 } = productApi;
+

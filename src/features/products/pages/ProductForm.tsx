@@ -14,7 +14,9 @@ import {
   IconButton,
   Typography,
 } from '@mui/material';
-import { Close } from '@mui/icons-material';
+import { Close, AddPhotoAlternate, Movie } from '@mui/icons-material';
+
+
 import { useGetStoresQuery } from '../../store/api/storeApi';
 import { useGetCategoriesQuery } from '../../category/components/api/categoryApi';
 import { useGetSubCategoriesByCategoryQuery } from '../../category/components/api/subCategoryApi';
@@ -24,9 +26,11 @@ import toast from 'react-hot-toast';
 
 type Props = {
   initialData?: any;
-  onSave: (data: ProductRequest, imageFile?: File) => void;
+  onSave: (data: ProductRequest, imageFile?: File, galleryImages?: File[], videoFile?: File) => void;
   onClose: () => void;
+
 };
+
 
 export default function ProductForm({ initialData, onSave, onClose }: Props) {
   const [name, setName] = useState(initialData?.name || '');
@@ -67,16 +71,29 @@ export default function ProductForm({ initialData, onSave, onClose }: Props) {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | undefined>(initialData?.imageUrl);
 
+  // Gallery Images
+  const [galleryImages, setGalleryImages] = useState<File[]>([]);
+  const [galleryPreviews, setGalleryPreviews] = useState<string[]>(
+    initialData?.images?.map((img: any) => img.imageUrl) || []
+  );
+
+  // Video
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string | undefined>(initialData?.videoUrl);
+
+
+
   // RTK Query hooks for lookups
-  const { data: storesData } = useGetStoresQuery({});
+  const { data: storesData } = useGetStoresQuery(undefined as any);
   const { data: categoriesData } = useGetCategoriesQuery();
   const { data: subCategoriesData, isFetching: loadingSubs } = useGetSubCategoriesByCategoryQuery(categoryId, {
     skip: !categoryId,
   });
 
-  const stores = Array.isArray(storesData) ? storesData : storesData?.content || [];
+  const stores = Array.isArray(storesData) ? storesData : (storesData as any)?.content || [];
   const categories = categoriesData || [];
   const subCategories = subCategoriesData || [];
+
 
   const [submitting, setSubmitting] = useState(false);
 
@@ -97,6 +114,37 @@ export default function ProductForm({ initialData, onSave, onClose }: Props) {
       setImagePreview(URL.createObjectURL(file));
     }
   };
+
+  const handleGalleryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      setGalleryImages((prev) => [...prev, ...files]);
+      const newPreviews = files.map((f) => URL.createObjectURL(f));
+      setGalleryPreviews((prev) => [...prev, ...newPreviews]);
+      toast.success(`${files.length} gallery image(s) added`);
+    }
+  };
+
+
+  const removeGalleryImage = (index: number) => {
+    // If it's a new file
+    const fileIndex = index - (initialData?.images?.length || 0);
+    if (fileIndex >= 0) {
+      setGalleryImages((prev) => prev.filter((_, i) => i !== fileIndex));
+    }
+    setGalleryPreviews((prev) => prev.filter((_, i) => i !== index));
+    // Note: Deleting existing images from backend should be handled separately or via update
+  };
+
+  const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setVideoFile(file);
+      setVideoPreview(URL.createObjectURL(file));
+    }
+  };
+
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -159,10 +207,12 @@ export default function ProductForm({ initialData, onSave, onClose }: Props) {
 
     setSubmitting(true);
     try {
-      await onSave(productData, imageFile || undefined);
+      await onSave(productData, imageFile || undefined, galleryImages, videoFile || undefined);
     } finally {
       setSubmitting(false);
     }
+
+
   };
 
   return (
@@ -227,11 +277,12 @@ export default function ProductForm({ initialData, onSave, onClose }: Props) {
             label="Store (optional)"
           >
             <MenuItem value="">No store</MenuItem>
-            {stores.map((s) => (
+            {stores.map((s: any) => (
               <MenuItem key={s.id} value={s.id}>
                 {s.name}
               </MenuItem>
             ))}
+
           </Select>
         </FormControl>
 
@@ -262,46 +313,211 @@ export default function ProductForm({ initialData, onSave, onClose }: Props) {
 
         <VariantForm variants={variants} onChange={setVariants} />
 
-        <Paper variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            style={{ display: 'none' }}
-            id="product-image"
-          />
-          <label htmlFor="product-image">
-            <Button variant="outlined" component="span">
-              {imagePreview ? 'Change image' : 'Click to upload product image'}
-            </Button>
-          </label>
-          {imagePreview && (
-            <Box sx={{ mt: 2, position: 'relative', display: 'inline-block' }}>
-              <img
-                src={imagePreview}
-                alt="Preview"
-                style={{ width: 128, height: 128, objectFit: 'cover', borderRadius: 8 }}
-              />
-              <IconButton
-                size="small"
-                onClick={() => {
-                  setImageFile(null);
-                  setImagePreview(undefined);
-                }}
-                sx={{
-                  position: 'absolute',
-                  top: -8,
-                  right: -8,
-                  bgcolor: 'error.main',
-                  color: 'white',
-                  '&:hover': { bgcolor: 'error.dark' },
-                }}
-              >
-                <Close fontSize="small" />
-              </IconButton>
+        <Box>
+          <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+            Product Images ({ (imagePreview ? 1 : 0) + galleryPreviews.length })
+          </Typography>
+
+          <Paper variant="outlined" sx={{ p: 2, bgcolor: 'background.paper' }}>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+              {/* Main Image Preview */}
+              {imagePreview && (
+                <Box sx={{ position: 'relative', width: 120, height: 120, border: '2px solid', borderColor: 'primary.main', borderRadius: 2 }}>
+                  <img
+                    src={imagePreview}
+                    alt="Main"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 6 }}
+                  />
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      bgcolor: 'primary.main',
+                      color: 'white',
+                      textAlign: 'center',
+                      fontSize: '0.65rem',
+                      fontWeight: 'bold',
+                      borderBottomLeftRadius: 4,
+                      borderBottomRightRadius: 4,
+                    }}
+                  >
+                    MAIN
+                  </Typography>
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      setImageFile(null);
+                      setImagePreview(undefined);
+                    }}
+                    sx={{
+                      position: 'absolute',
+                      top: -8,
+                      right: -8,
+                      bgcolor: 'error.main',
+                      color: 'white',
+                      '&:hover': { bgcolor: 'error.dark' },
+                    }}
+                  >
+                    <Close fontSize="small" />
+                  </IconButton>
+                </Box>
+              )}
+
+              {/* Gallery Previews */}
+              {galleryPreviews.map((preview, index) => (
+                <Box key={index} sx={{ position: 'relative', width: 100, height: 100, mt: 1 }}>
+                  <img
+                    src={preview}
+                    alt={`Gallery ${index}`}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 8 }}
+                  />
+                  <IconButton
+                    size="small"
+                    onClick={() => removeGalleryImage(index)}
+                    sx={{
+                      position: 'absolute',
+                      top: -8,
+                      right: -8,
+                      bgcolor: 'error.main',
+                      color: 'white',
+                      '&:hover': { bgcolor: 'error.dark' },
+                    }}
+                  >
+                    <Close fontSize="small" />
+                  </IconButton>
+                </Box>
+              ))}
+              
+              <Box sx={{ mt: imagePreview ? 1 : 0 }}>
+                <Stack direction="row" spacing={2}>
+                  {/* Main Image Upload */}
+                  {!imagePreview && (
+                    <Box>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        style={{ display: 'none' }}
+                        id="main-image-upload"
+                      />
+                      <label htmlFor="main-image-upload">
+                        <Button
+                          variant="outlined"
+                          component="span"
+                          sx={{
+                            width: 120,
+                            height: 120,
+                            borderStyle: 'dashed',
+                            borderWidth: 2,
+                            borderColor: 'primary.main',
+                            borderRadius: 2,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 1,
+                            textTransform: 'none',
+                          }}
+                        >
+                          <AddPhotoAlternate />
+                          <Typography variant="caption">Main Image</Typography>
+                        </Button>
+                      </label>
+                    </Box>
+                  )}
+
+                  {/* Gallery Upload Button */}
+                  <Box>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleGalleryChange}
+                      style={{ display: 'none' }}
+                      id="gallery-images-upload"
+                    />
+                    <label htmlFor="gallery-images-upload">
+                      <Button
+                        variant="outlined"
+                        component="span"
+                        sx={{
+                          width: 100,
+                          height: 100,
+                          borderStyle: 'dashed',
+                          borderWidth: 2,
+                          borderColor: 'secondary.main',
+                          borderRadius: 2,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 1,
+                          textTransform: 'none',
+                        }}
+                      >
+                        <AddPhotoAlternate />
+                        <Typography variant="caption">Add Gallery</Typography>
+                      </Button>
+                    </label>
+                  </Box>
+                </Stack>
+              </Box>
             </Box>
-          )}
-        </Paper>
+          </Paper>
+        </Box>
+
+
+        <Box>
+          <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
+            Product Video
+          </Typography>
+          <Paper variant="outlined" sx={{ p: 2, bgcolor: 'background.paper', textAlign: 'center' }}>
+            <input
+              type="file"
+              accept="video/*"
+              onChange={handleVideoChange}
+              style={{ display: 'none' }}
+              id="product-video-upload"
+            />
+            <label htmlFor="product-video-upload">
+              <Button
+                variant="outlined"
+                component="span"
+                startIcon={<Movie />}
+                sx={{ borderRadius: 2 }}
+              >
+                {videoPreview ? 'Change Video' : 'Upload Product Video'}
+              </Button>
+            </label>
+            {videoPreview && (
+              <Box sx={{ mt: 2, position: 'relative', display: 'inline-block', maxWidth: '100%' }}>
+                <video
+                  src={videoPreview}
+                  controls
+                  style={{ width: '100%', maxHeight: 240, borderRadius: 8 }}
+                />
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    setVideoFile(null);
+                    setVideoPreview(undefined);
+                  }}
+                  sx={{
+                    position: 'absolute',
+                    top: -8,
+                    right: -8,
+                    bgcolor: 'error.main',
+                    color: 'white',
+                    '&:hover': { bgcolor: 'error.dark' },
+                  }}
+                >
+                  <Close fontSize="small" />
+                </IconButton>
+              </Box>
+            )}
+          </Paper>
+        </Box>
+
+
 
         <Stack direction="row" justifyContent="flex-end" spacing={2}>
           <Button onClick={onClose}>Cancel</Button>
@@ -309,6 +525,7 @@ export default function ProductForm({ initialData, onSave, onClose }: Props) {
             {submitting ? 'Saving...' : initialData?.id ? 'Update' : 'Save'}
           </Button>
         </Stack>
+
       </Stack>
     </Box>
   );

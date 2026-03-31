@@ -5,7 +5,9 @@ import {
   useCreateProductMutation,
   useUpdateProductMutation,
   useDeleteProductMutation,
+  useAddGalleryImageMutation,
 } from '../api/productApi';
+
 import { ProductRequest } from '../api/productApi';
 import { Product } from '../../category/types/index';
 import ProductForm from './ProductForm';
@@ -62,19 +64,42 @@ export default function ProductList() {
   const [createProduct] = useCreateProductMutation();
   const [updateProduct] = useUpdateProductMutation();
   const [deleteProduct] = useDeleteProductMutation();
+  const [addGalleryImage] = useAddGalleryImageMutation();
+
 
   const loading = productsLoading || searchLoading;
   const products = debouncedSearch.trim().length > 0 ? (searchedProducts || []) : (allProducts || []);
 
-  const handleSave = async (data: ProductRequest, imageFile?: File) => {
+  const handleSave = async (data: ProductRequest, imageFile?: File, galleryImages?: File[], videoFile?: File) => {
     try {
+      let product: Product;
       if (editingProduct) {
-        await updateProduct({ id: editingProduct.id, product: data, image: imageFile }).unwrap();
+        product = await updateProduct({ id: editingProduct.id, product: data, image: imageFile, video: videoFile }).unwrap();
         toast.success('Product updated successfully');
       } else {
-        await createProduct({ product: data, image: imageFile }).unwrap();
+        product = await createProduct({ product: data, image: imageFile, video: videoFile }).unwrap();
         toast.success('Product created successfully');
       }
+
+
+      // Handle Gallery Images
+      if (galleryImages && galleryImages.length > 0) {
+        toast.loading('Uploading gallery images...', { id: 'gallery-upload' });
+        try {
+          const uploadPromises = galleryImages.map((file, index) =>
+            addGalleryImage({
+              productId: product.id,
+              image: file,
+              displayOrder: (product.images?.length || 0) + index + 1,
+            }).unwrap()
+          );
+          await Promise.all(uploadPromises);
+          toast.success('Gallery images uploaded successfully', { id: 'gallery-upload' });
+        } catch (error) {
+          toast.error('Failed to upload some gallery images', { id: 'gallery-upload' });
+        }
+      }
+
       setSearchKeyword('');           // clear search
       setShowModal(false);
       setEditingProduct(null);
@@ -82,6 +107,7 @@ export default function ProductList() {
       toast.error(error.data?.message || 'Failed to save product');
     }
   };
+
 
   const handleConfirmDelete = async () => {
     if (productToDelete === null) return;

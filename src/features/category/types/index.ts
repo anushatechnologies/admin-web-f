@@ -36,6 +36,12 @@ export interface ProductVariant {
   displayOrder: number;
 }
 
+export interface ProductImage {
+  id: number;
+  imageUrl: string;
+  displayOrder: number;
+}
+
 export interface Product {
   id: number;
   name: string;
@@ -57,8 +63,10 @@ export interface Product {
   createdAt?: string;
   updatedAt?: string;
   bestSeller: boolean;
-  variants?: ProductVariant[]; // Added variants
+  variants?: ProductVariant[];
+  images?: ProductImage[]; // Added for gallery support
 }
+
 
 export interface Store {
   id: number;
