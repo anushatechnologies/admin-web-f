@@ -1,44 +1,44 @@
 import React, { useState } from 'react';
-import { 
-  Box, 
-  Typography, 
-  Paper, 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
-  TableRow, 
-  Button,
-  Chip,
-  CircularProgress,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Alert,
-  Grid,
-  IconButton,
-  Menu,
-  MenuItem
+import {
+    Box,
+    Typography,
+    Paper,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Button,
+    Chip,
+    CircularProgress,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    TextField,
+    Alert,
+    Grid,
+    IconButton,
+    Menu,
+    MenuItem
 } from '@mui/material';
-import { 
-  MoreVert as MoreVertIcon,
-  LocalShipping as LocalShippingIcon,
-  CheckCircle as CheckCircleIcon,
-  Cancel as CancelIcon,
-  Person as PersonIcon
+import {
+    MoreVert as MoreVertIcon,
+    LocalShipping as LocalShippingIcon,
+    CheckCircle as CheckCircleIcon,
+    Cancel as CancelIcon,
+    Person as PersonIcon
 } from '@mui/icons-material';
-import { 
-  useGetAdminOrdersQuery,
-  useGetAdminOrderByIdQuery,
-  useAcceptOrderMutation,
-  useRejectOrderMutation,
-  useAssignDeliveryMutation,
-  useMarkOrderReadyMutation,
-  useMarkOutForDeliveryMutation,
-  useCompleteOrderMutation
+import {
+    useGetAdminOrdersQuery,
+    useGetAdminOrderByIdQuery,
+    useAcceptOrderMutation,
+    useRejectOrderMutation,
+    useAssignDeliveryMutation,
+    useMarkOrderReadyMutation,
+    useMarkOutForDeliveryMutation,
+    useCompleteOrderMutation
 } from '../api/orderApi';
 import { useGetAvailableDeliveryPersonsQuery } from '../../delivery/api/deliveryApi';
 import { AdminOrderSummaryDto, AdminOrderDetailDto } from '../types/index';
@@ -57,9 +57,9 @@ const AdminOrderDashboard: React.FC = () => {
 
     const { data: orders, isLoading, isError, refetch } = useGetAdminOrdersQuery();
     const { data: orderDetail, isFetching: isDetailFetching } = useGetAdminOrderByIdQuery(selectedOrderId || 0, {
-      skip: !selectedOrderId
+        skip: !selectedOrderId
     });
-    
+
     const [acceptOrder] = useAcceptOrderMutation();
     const [rejectOrder, { isLoading: isRejecting }] = useRejectOrderMutation();
     const [assignDelivery, { isLoading: isAssigning }] = useAssignDeliveryMutation();
@@ -137,9 +137,9 @@ const AdminOrderDashboard: React.FC = () => {
     const handleRejectOrder = async () => {
         if (currentOrderForMenu && rejectReason.trim()) {
             try {
-                await rejectOrder({ 
-                    orderId: currentOrderForMenu.id, 
-                    reason: rejectReason 
+                await rejectOrder({
+                    orderId: currentOrderForMenu.id,
+                    reason: rejectReason
                 }).unwrap();
                 toast.success('Order rejected successfully!');
                 setRejectDialogOpen(false);
@@ -223,15 +223,15 @@ const AdminOrderDashboard: React.FC = () => {
                                     <TableCell>{order.customerPhone}</TableCell>
                                     <TableCell>₹{order.grandTotal.toFixed(2)}</TableCell>
                                     <TableCell>
-                                        <Chip 
-                                            label={order.orderStatus.toUpperCase()} 
+                                        <Chip
+                                            label={order.orderStatus.toUpperCase()}
                                             color={getStatusColor(order.orderStatus) as any}
                                             size="small"
                                         />
                                     </TableCell>
                                     <TableCell>
-                                        <Chip 
-                                            label={order.paymentStatus.toUpperCase()} 
+                                        <Chip
+                                            label={order.paymentStatus.toUpperCase()}
                                             color={getPaymentStatusColor(order.paymentStatus) as any}
                                             size="small"
                                         />
@@ -295,8 +295,8 @@ const AdminOrderDashboard: React.FC = () => {
             </Menu>
 
             {/* Order Details Dialog */}
-            <Dialog 
-                open={detailDialogOpen} 
+            <Dialog
+                open={detailDialogOpen}
                 onClose={() => setDetailDialogOpen(false)}
                 maxWidth="md"
                 fullWidth
@@ -392,8 +392,8 @@ const AdminOrderDashboard: React.FC = () => {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setRejectDialogOpen(false)}>Cancel</Button>
-                    <Button 
-                        onClick={handleRejectOrder} 
+                    <Button
+                        onClick={handleRejectOrder}
                         color="error"
                         disabled={!rejectReason.trim() || isRejecting}
                     >
@@ -433,7 +433,7 @@ const AdminOrderDashboard: React.FC = () => {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setAssignDialogOpen(false)}>Cancel</Button>
-                    <Button 
+                    <Button
                         onClick={handleConfirmAssignDelivery}
                         disabled={!selectedDeliveryPerson || isAssigning}
                     >

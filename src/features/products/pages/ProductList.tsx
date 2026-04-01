@@ -104,7 +104,11 @@ export default function ProductList() {
       setShowModal(false);
       setEditingProduct(null);
     } catch (error: any) {
-      toast.error(error.data?.message || 'Failed to save product');
+      let errorMsg = error.data?.message || 'Failed to save product';
+      if (typeof errorMsg === 'string' && errorMsg.includes('foreign key constraint fails') && errorMsg.includes('order_items')) {
+        errorMsg = 'Cannot delete or modify variant because it is associated with existing orders.';
+      }
+      toast.error(errorMsg);
     }
   };
 
@@ -115,7 +119,11 @@ export default function ProductList() {
       await deleteProduct(productToDelete).unwrap();
       toast.success('Product deleted successfully');
     } catch (error: any) {
-      toast.error(error.data?.message || 'Failed to delete product');
+      let errorMsg = error.data?.message || 'Failed to delete product';
+      if (typeof errorMsg === 'string' && errorMsg.includes('foreign key constraint fails') && errorMsg.includes('order_items')) {
+        errorMsg = 'Cannot delete product because it is associated with existing orders.';
+      }
+      toast.error(errorMsg);
     } finally {
       setDeleteConfirmOpen(false);
       setProductToDelete(null);
